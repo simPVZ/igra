@@ -3,73 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Симулятор ПВЗ - Главный экран</title>
+    <title>ПВЗ Симулятор - Оператор</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #4a148c;
-            --secondary: #f3e5f5;
-            --text: #333;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --danger: #f44336;
-        }
+        :root { --primary: #4a148c; --secondary: #f3e5f5; --text: #333; --success: #4caf50; --warning: #ff9800; --danger: #f44336; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f5f5f5; color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Боковая панель */
         .sidebar { width: 250px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
         .sidebar h2 { margin-top: 0; font-size: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
         .sidebar-btn { background: none; border: none; color: white; text-align: left; padding: 15px 10px; cursor: pointer; font-size: 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
         .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
         .sidebar-btn.active { background: rgba(255,255,255,0.2); font-weight: bold; }
-
-        /* Основная зона */
         .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 28px; }
         .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
         .status-badge.connected { background: #e8f5e9; color: #2e7d32; }
         .status-badge.disconnected { background: #ffebee; color: #c62828; }
-
-        /* Карточки */
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 15px; }
-        
-        /* Таблица заказов */
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; }
         th { color: #777; font-weight: normal; font-size: 14px; }
-        .status-in_transit { color: #777; }
-        .status-accepted { color: var(--warning); }
-        .status-placed { color: var(--primary); font-weight: bold; }
-        .status-issued { color: var(--success); }
-        .status-returned { color: var(--danger); }
-        .status-lost { color: var(--danger); font-weight: bold; }
-
-        /* Панель управления */
+        .status-in_transit { color: #777; } .status-accepted { color: var(--warning); }
+        .status-placed { color: var(--primary); font-weight: bold; } .status-issued { color: var(--success); }
+        .status-returned { color: var(--danger); } .status-lost { color: var(--danger); font-weight: bold; }
         .controls { display: flex; gap: 10px; margin-top: 20px; }
         .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { opacity: 0.9; }
+        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { opacity: 0.9; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        /* Поле поиска */
         .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
         .search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        
-        /* Модальное окно окончания смены */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; }
-        .modal h2 { margin-top: 0; }
         .modal-list { text-align: left; margin: 20px 0; max-height: 300px; overflow-y: auto; }
         .modal-list li { padding: 8px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-
-    <!-- Боковая панель -->
     <div class="sidebar">
         <h2>ПВЗ Симулятор</h2>
         <button class="sidebar-btn active">
@@ -81,25 +51,18 @@
             Окончить смену
         </button>
         <div style="margin-top: auto; font-size: 12px; opacity: 0.7;">
-            <p>Техподдержка 24/7</p>
-            <p>+7 (999) 123-45-67</p>
+            <p>Техподдержка 24/7<br>+7 (999) 123-45-67</p>
         </div>
     </div>
 
-    <!-- Основной контент -->
     <div class="main-content">
-        <!-- Шапка -->
         <div class="header">
             <h1>Панель оператора</h1>
             <div id="connection-status" class="status-badge disconnected">Подключение...</div>
         </div>
 
-        <!-- Блок выдачи заказа -->
         <div class="card">
-            <h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                Выдача заказа
-            </h3>
+            <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Выдача заказа</h3>
             <div class="search-box">
                 <input type="text" id="issue-input" placeholder="Введите номер заказа (например, PVZ-0001)" onkeypress="handleIssueKeyPress(event)">
                 <button class="btn btn-primary" onclick="issueOrder()">Найти и выдать</button>
@@ -107,302 +70,151 @@
             <p id="issue-message" style="color: var(--primary); font-weight: bold;"></p>
         </div>
 
-        <!-- Блок приемки -->
         <div class="card" style="flex: 1;">
-            <h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                Поставки и склад (Принято: <span id="count-accepted">0</span>)
-            </h3>
+            <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Поставки и склад (Принято: <span id="count-accepted">0</span>)</h3>
             <table>
-                <thead>
-                    <tr>
-                        <th>Номер</th>
-                        <th>Товар</th>
-                        <th>Клиент</th>
-                        <th>Статус</th>
-                        <th>Номер коробки (1-50)</th>
-                    </tr>
-                </thead>
-                <tbody id="orders-table-body">
-                    <!-- Сюда падают заказы из Supabase -->
-                </tbody>
+                <thead><tr><th>Номер</th><th>Товары</th><th>Клиент</th><th>Статус</th><th>Коробка (1-50)</th></tr></thead>
+                <tbody id="orders-table-body"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Модальное окно окончания смены -->
     <div class="modal-overlay" id="shift-modal">
         <div class="modal">
             <h2>Сверка перед закрытием смены</h2>
-            <p>Проверьте физическое наличие коробок и сверьте данные:</p>
-            <ul class="modal-list" id="modal-list">
-                <!-- Список -->
-            </ul>
+            <p>Проверьте физическое наличие коробок:</p>
+            <ul class="modal-list" id="modal-list"></ul>
             <div class="controls" style="justify-content: center;">
-                <button class="btn btn-primary" onclick="confirmEndShift()">Подтвердить окончание смены</button>
+                <button class="btn btn-primary" onclick="confirmEndShift()">Подтвердить окончание</button>
                 <button class="btn" style="background: #eee;" onclick="closeEndShiftModal()">Отмена</button>
             </div>
         </div>
     </div>
 
-    <!-- Подключение скриптов -->
     <script>
-        // --- КОНФИГУРАЦИЯ SUPABASE ---
-const SUPABASE_URL = 'https://gfqcrsznivcqlqviexit.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_xfLiWRP0CUw8RVBOzjLwew_IvfkWLmg';
+        const SUPABASE_URL = 'https://gfqcrsznivcqlqviexit.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_xfLiWRP0CUw8RVBOzjLwew_IvfkWLmg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Создаем клиент и называем переменную supabaseClient
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // --- СОСТОЯНИЕ ---
         let orders = [];
         let isShiftEnded = false;
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
         async function init() {
             await loadOrders();
             subscribeToRealtime();
             updateConnectionStatus('connected');
+        }
+
+        async function loadOrders() {
+            const { data, error } = await supabaseClient.from('orders').select(`*, order_items (*)`).order('id');
+            if (error) { console.error(error); return; }
+            orders = data;
+            renderTable();
             updateCounters();
         }
 
-        // --- ЗАГРУЗКА ДАННЫХ ---
-        async function loadOrders() {
-            const { data, error } = await supabase.from('orders').select('*').order('id');
-            if (error) {
-                console.error('Ошибка загрузки:', error);
-                updateConnectionStatus('disconnected');
-                return;
-            }
-            orders = data;
-            renderTable();
-        }
-
-        // --- ПОДПИСКА НА REALTIME ---
         function subscribeToRealtime() {
-            supabase.channel('custom-all-channel')
+            supabaseClient.channel('main-channel')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
-                    // Обновляем локальный массив при изменениях в БД
-                    const newRecord = payload.new;
-                    const oldRecord = payload.old;
-                    
-                    if (payload.eventType === 'INSERT') {
-                        orders.push(newRecord);
-                    } else if (payload.eventType === 'UPDATE') {
-                        const index = orders.findIndex(o => o.id === newRecord.id);
-                        if (index !== -1) orders[index] = newRecord;
-                    } else if (payload.eventType === 'DELETE') {
-                        orders = orders.filter(o => o.id !== oldRecord.id);
+                    if (payload.eventType === 'UPDATE') {
+                        const index = orders.findIndex(o => o.id === payload.new.id);
+                        if (index !== -1) {
+                            payload.new.order_items = orders[index].order_items; // сохраняем товары
+                            orders[index] = payload.new;
+                            renderTable();
+                            updateCounters();
+                        }
                     }
-                    
-                    renderTable();
-                    updateCounters();
-                })
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
-                        updateConnectionStatus('connected');
-                    } else {
-                        updateConnectionStatus('disconnected');
-                    }
-                });
+                }).subscribe();
 
-            // Подписка на таблицу сканера (приемка)
-            supabase.channel('scanner-channel')
+            supabaseClient.channel('scanner-channel')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scans' }, async payload => {
-                    const scan = payload.new;
-                    await processScan(scan.order_id);
-                })
-                .subscribe();
+                    await processScan(payload.new.order_id);
+                }).subscribe();
         }
 
-        // --- ЛОГИКА ПРИЕМКИ (ИЗ СКАНЕРА) ---
         async function processScan(orderId) {
             const order = orders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
-            // Находим свободный номер коробки (1-50)
-            const usedNumbers = orders.filter(o => o.box_number !== null).map(o => o.box_number);
-            let freeNumber = 1;
-            while (usedNumbers.includes(freeNumber) && freeNumber <= 50) {
-                freeNumber++;
-            }
+            const used = orders.filter(o => o.box_number !== null).map(o => o.box_number);
+            let free = 1;
+            while (used.includes(free) && free <= 50) free++;
 
-            if (freeNumber > 50) {
-                alert("Внимание! Закончились свободные места на складе (макс. 50).");
-                return;
-            }
+            if (free > 50) { alert("Склад переполнен!"); return; }
 
-            // Обновляем в БД
-            const { error } = await supabase
-                .from('orders')
-                .update({ status: 'accepted', box_number: freeNumber })
-                .eq('id', orderId);
-
-            if (!error) {
-                // Голосовое уведомление о приемке
-                speak(`Принят заказ ${orderId}. Номер коробки ${freeNumber}`);
-            }
+            const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
+            if (!error) speak(`Принят заказ ${orderId}. Коробка ${free}`);
         }
 
-        // --- ЛОГИКА ВЫДАЧИ ---
         async function issueOrder() {
             if (isShiftEnded) return;
             const input = document.getElementById('issue-input');
             const orderId = input.value.trim().toUpperCase();
             const msgEl = document.getElementById('issue-message');
-            
             if (!orderId) return;
 
             const order = orders.find(o => o.id === orderId);
+            if (!order) { msgEl.style.color = 'var(--danger)'; msgEl.textContent = 'Заказ не найден.'; return; }
+            if (order.status === 'issued') { msgEl.style.color = 'var(--warning)'; msgEl.textContent = 'Уже выдан.'; return; }
+            if (order.status !== 'placed' && order.status !== 'accepted') { msgEl.style.color = 'var(--danger)'; msgEl.textContent = `Не принят (статус: ${order.status}).`; return; }
 
-            if (!order) {
-                msgEl.style.color = 'var(--danger)';
-                msgEl.textContent = 'Заказ не найден в базе.';
-                return;
-            }
-
-            if (order.status === 'issued') {
-                msgEl.style.color = 'var(--warning)';
-                msgEl.textContent = 'Этот заказ уже был выдан.';
-                return;
-            }
-
-            if (order.status !== 'placed' && order.status !== 'accepted') {
-                msgEl.style.color = 'var(--danger)';
-                msgEl.textContent = `Заказ еще не принят на склад (статус: ${order.status}).`;
-                return;
-            }
-
-            // Голосовая подсказка для поиска
-            speak(`Заказ ${orderId}. Коробка номер ${order.box_number}. Пройдите на склад.`);
-
-            // В реальной игре здесь оператор идет искать коробку, затем подтверждает
-            const confirmIssue = confirm(`Найдена коробка №${order.box_number} для ${order.customer_name}?\n\nНажмите ОК, чтобы подтвердить выдачу.`);
-            
-            if (confirmIssue) {
-                const { error } = await supabase
-                    .from('orders')
-                    .update({ status: 'issued' })
-                    .eq('id', orderId);
-
+            speak(`Заказ ${orderId}. Коробка ${order.box_number}.`);
+            if (confirm(`Найдена коробка №${order.box_number} для ${order.customer_name}?`)) {
+                const { error } = await supabaseClient.from('orders').update({ status: 'issued' }).eq('id', orderId);
                 if (!error) {
                     msgEl.style.color = 'var(--success)';
-                    msgEl.textContent = `Заказ ${orderId} успешно выдан!`;
+                    msgEl.textContent = `Заказ ${orderId} выдан!`;
                     input.value = '';
-                    // Отправляем сигнал клиенту, что заказ выдан (через Realtime в БД)
-                } else {
-                    msgEl.textContent = 'Ошибка обновления базы.';
                 }
             }
         }
 
-        function handleIssueKeyPress(event) {
-            if (event.key === 'Enter') issueOrder();
-        }
+        function handleIssueKeyPress(e) { if (e.key === 'Enter') issueOrder(); }
 
-        // --- ОКОНЧАНИЕ СМЕНЫ ---
-        function openEndShiftModal() {
-            const modal = document.getElementById('shift-modal');
-            const list = document.getElementById('modal-list');
-            list.innerHTML = '';
-
-            // Выводим сводку для ручной сверки
-            const placedOrders = orders.filter(o => o.status === 'placed' || o.status === 'accepted');
-            const issuedOrders = orders.filter(o => o.status === 'issued');
-            
-            if (placedOrders.length === 0) {
-                list.innerHTML = '<li>На складе не осталось заказов. Все выдано.</li>';
-            } else {
-                list.innerHTML = `<li><strong>На складе осталось: ${placedOrders.length} шт.</strong></li>`;
-                placedOrders.forEach(o => {
-                    list.innerHTML += `<li>Коробка №${o.box_number} — ${o.id} (${o.customer_name})</li>`;
-                });
-            }
-            
-            list.innerHTML += `<br><li>Выдано за смену: ${issuedOrders.length} шт.</li>`;
-            
-            modal.style.display = 'flex';
-        }
-
-        function closeEndShiftModal() {
-            document.getElementById('shift-modal').style.display = 'none';
-        }
-
-        async function confirmEndShift() {
-            isShiftEnded = true;
-            closeEndShiftModal();
-            
-            // Блокируем интерфейс
-            document.getElementById('issue-input').disabled = true;
-            document.querySelector('.btn-primary').disabled = true;
-            
-            speak("Смена окончена. Спасибо за работу.");
-            alert("Смена успешно завершена! Вы можете закрыть страницу.");
-            
-            // В реальном проекте здесь можно обнулить статусы или создать отчет
-        }
-
-        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
         function renderTable() {
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-            
-            // Сортируем: сначала те, что на складе, потом в пути, потом выданные
             const sorted = [...orders].sort((a, b) => {
-                const priority = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4, 'returned': 5, 'lost': 6 };
-                return (priority[a.status] || 99) - (priority[b.status] || 99);
+                const p = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4 };
+                return (p[a.status] || 99) - (p[b.status] || 99);
             });
-
-            sorted.forEach(order => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${order.id}</strong></td>
-                    <td>${order.product_name}</td>
-                    <td>${order.customer_name}</td>
-                    <td><span class="status-${order.status}">${translateStatus(order.status)}</span></td>
-                    <td>${order.box_number ? `№ ${order.box_number}` : '—'}</td>
-                `;
-                tbody.appendChild(tr);
+            sorted.forEach(o => {
+                const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
+                tbody.innerHTML += `<tr><td><strong>${o.id}</strong></td><td>${items}</td><td>${o.customer_name}</td><td><span class="status-${o.status}">${o.status}</span></td><td>${o.box_number ? '№ '+o.box_number : '—'}</td></tr>`;
             });
-        }
-
-        function translateStatus(status) {
-            const map = {
-                'in_transit': 'В пути',
-                'accepted': 'Принят',
-                'placed': 'На складе',
-                'issued': 'Выдан',
-                'returned': 'Возврат',
-                'lost': 'Потерян'
-            };
-            return map[status] || status;
         }
 
         function updateCounters() {
-            const acceptedCount = orders.filter(o => o.status === 'accepted' || o.status === 'placed').length;
-            document.getElementById('count-accepted').textContent = acceptedCount;
+            document.getElementById('count-accepted').textContent = orders.filter(o => o.status === 'accepted' || o.status === 'placed').length;
         }
 
-        function updateConnectionStatus(status) {
+        function updateConnectionStatus(s) {
             const el = document.getElementById('connection-status');
-            if (status === 'connected') {
-                el.textContent = 'Онлайн (Supabase)';
-                el.className = 'status-badge connected';
-            } else {
-                el.textContent = 'Нет связи';
-                el.className = 'status-badge disconnected';
-            }
+            el.textContent = s === 'connected' ? 'Онлайн' : 'Нет связи';
+            el.className = `status-badge ${s}`;
         }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ru-RU';
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ru-RU'; window.speechSynthesis.speak(u);
             }
         }
 
-        // Запуск
+        function openEndShiftModal() {
+            const list = document.getElementById('modal-list');
+            const placed = orders.filter(o => o.status === 'accepted' || o.status === 'placed');
+            list.innerHTML = placed.length === 0 ? '<li>Склад пуст.</li>' : `<li><strong>На складе: ${placed.length} шт.</strong></li>`;
+            placed.forEach(o => list.innerHTML += `<li>Коробка №${o.box_number} — ${o.id} (${o.customer_name})</li>`);
+            document.getElementById('shift-modal').style.display = 'flex';
+        }
+        function closeEndShiftModal() { document.getElementById('shift-modal').style.display = 'none'; }
+        function confirmEndShift() {
+            isShiftEnded = true; closeEndShiftModal();
+            speak("Смена окончена."); alert("Смена завершена!");
+        }
+
         init();
     </script>
 </body>
