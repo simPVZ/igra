@@ -53,7 +53,7 @@
         .emp-search-box { display: flex; gap: 10px; margin-bottom: 15px; }
         .emp-search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
         
-        /* СКАНЕРЫ (ПРИЕМКА И КЛИЕНТ) */
+        /* СКАНЕРЫ */
         #screen-scanner, #client-scan-modal { display: flex; flex-direction: column; height: 100vh; background: #222; color: white; position: fixed; top:0; left:0; width:100%; z-index: 500; }
         
         /* ВЕРХНЯЯ ПАНЕЛЬ СТАТУСА */
@@ -92,7 +92,7 @@
         .btn-scan-client { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; cursor: pointer; font-size: 16px;}
         
         #client-qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-        #client-qr-screen h1 { font-size: 50px; margin: 0; color: var(--primary); text-align: center; word-break: break-all; padding: 0 20px;}
+        #client-qr-screen h1 { font-size: 80px; margin: 0; color: var(--primary); text-align: center; word-break: break-all; padding: 0 20px;}
         .close-qr { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 40px; color: var(--danger); cursor: pointer; }
 
         #client-notification { position: fixed; top: -100px; left: 0; width: 100%; padding: 20px; text-align: center; color: white; font-size: 20px; font-weight: bold; transition: top 0.3s; z-index: 600; box-sizing: border-box; }
@@ -132,7 +132,8 @@
             <div class="emp-card">
                 <h3>Выдача заказа</h3>
                 <div class="emp-search-box">
-                    <input type="text" id="issue-input" placeholder="Номер заказа (PVZ-0001)" onkeypress="if(event.key==='Enter') issueOrder()">
+                    <!-- Изменили подсказку в поле ввода -->
+                    <input type="text" id="issue-input" placeholder="Введите номер заказа (например, 1)" onkeypress="if(event.key==='Enter') issueOrder()">
                     <button class="btn btn-primary" onclick="issueOrder()">Найти</button>
                 </div>
                 <p id="issue-message" style="color: var(--primary); font-weight: bold;"></p>
@@ -161,12 +162,13 @@
             <h2>Сканер приёмки</h2>
             <button class="btn-back" onclick="exitRole()">Назад</button>
         </div>
-        <!-- СТАТУС ПЕРЕНЕСЕН НАВЕРХ -->
+        <!-- СТАТУС НАВЕРХУ -->
         <div id="scan-status" class="status-bar-top">Наведите камеру на QR-код</div>
         
         <div id="scanner-reader"></div>
         <div class="scan-controls">
-            <input type="text" id="manual-input" placeholder="Ввод вручную (PVZ-0001)" onkeypress="if(event.key==='Enter') manualScan()">
+            <!-- Изменили подсказку в поле ввода -->
+            <input type="text" id="manual-input" placeholder="Ввод вручную (например, 1)" onkeypress="if(event.key==='Enter') manualScan()">
             <button onclick="manualScan()">Отправить код</button>
         </div>
     </div>
@@ -193,16 +195,18 @@
                 <h2>Проверка коробки</h2>
                 <button class="btn-back" onclick="closeClientScanner()">Закрыть</button>
             </div>
-            <!-- СТАТУС ПЕРЕНЕСЕН НАВЕРХ -->
+            <!-- СТАТУС НАВЕРХУ -->
             <div id="client-scan-status" class="status-bar-top">Наведите камеру на QR коробки</div>
             
             <div id="client-scanner-reader"></div>
         </div>
 
+        <!-- Экран показа QR-кода -->
         <div id="client-qr-screen" class="hidden">
             <button class="close-qr" onclick="closeClientQR()">×</button>
-            <h1 id="client-big-id">PVZ-0001</h1>
-            <p>Покажите оператору</p>
+            <!-- По умолчанию просто цифра -->
+            <h1 id="client-big-id">1</h1>
+            <p>Покажите этот номер оператору</p>
             <svg width="200" height="200" viewBox="0 0 100 100" style="margin-top: 20px;">
                 <rect x="10" y="10" width="80" height="80" fill="none" stroke="black" stroke-width="2"/>
                 <rect x="20" y="20" width="20" height="20" fill="black"/>
@@ -256,7 +260,6 @@
         async function initEmployee() {
             await loadEmpOrders();
             
-            // Слушаем обновления заказов в реальном времени
             supabaseClient.channel('emp-orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
                 const idx = empOrders.findIndex(o => o.id === payload.new.id);
                 if (idx !== -1) {
@@ -266,7 +269,6 @@
                 }
             }).subscribe();
 
-            // Слушаем события от сканера
             supabaseClient.channel('emp-scans').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scans' }, payload => {
                 processEmpScan(payload.new.order_id);
             }).subscribe();
@@ -289,6 +291,7 @@
             });
             sorted.forEach(o => {
                 const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
+                // Выводим номер как есть
                 tbody.innerHTML += `<tr>
                     <td><strong>${o.id}</strong></td>
                     <td>${items}</td>
@@ -300,6 +303,7 @@
         }
 
         async function processEmpScan(orderId) {
+            // Ищем заказ по ID (теперь это '1', '2' и т.д.)
             const order = empOrders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
@@ -309,20 +313,19 @@
             
             if (free > 50) return alert("Склад переполнен!");
 
-            // Обновляем статус и присваиваем номер коробки
             const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
             
             if (error) {
-                alert("ОШИБКА БАЗЫ ДАННЫХ: " + error.message + "\nПроверьте права доступа (RLS) для таблицы orders!");
+                alert("ОШИБКА БАЗЫ ДАННЫХ: " + error.message + "\nПроверьте права доступа (RLS)!");
             } else {
-                empSpeak(`Принят ${orderId}. Коробка ${free}`);
-                loadEmpOrders(); // Мгновенное обновление таблицы
+                empSpeak(`Принят заказ ${orderId}. Коробка ${free}`);
+                loadEmpOrders();
             }
         }
 
         async function issueOrder() {
             const input = document.getElementById('issue-input');
-            const orderId = input.value.trim().toUpperCase();
+            const orderId = input.value.trim(); // Просто убираем пробелы, верхний регистр не нужен для цифр
             const msgEl = document.getElementById('issue-message');
             if (!orderId) return;
 
@@ -353,7 +356,7 @@
             const list = document.getElementById('modal-list');
             const placed = empOrders.filter(o => o.status === 'accepted' || o.status === 'placed');
             list.innerHTML = placed.length === 0 ? '<li>Склад пуст.</li>' : `<li><strong>Осталось: ${placed.length} шт.</strong></li>`;
-            placed.forEach(o => list.innerHTML += `<li>Коробка №${o.box_number} — ${o.id}</li>`);
+            placed.forEach(o => list.innerHTML += `<li>Коробка №${o.box_number} — Заказ ${o.id}</li>`);
             document.getElementById('shift-modal').style.display = 'flex';
         }
 
@@ -398,21 +401,19 @@
         function updateScanStatus(text, colorClass) {
             const el = document.getElementById('scan-status');
             el.innerText = text;
-            // Сохраняем базовый класс и добавляем цвет
             el.className = 'status-bar-top ' + (colorClass || '');
         }
 
         async function sendScan(orderId) {
-            const cleanId = orderId.trim().toUpperCase(); 
+            const cleanId = orderId.trim(); // Убираем пробелы
 
             const { error } = await supabaseClient.from('scans').insert([{ order_id: cleanId, scanner_id: 'mobile' }]);
             
             if (!error) {
-                updateScanStatus("УСПЕШНО: " + cleanId, "scan-success");
+                updateScanStatus("УСПЕШНО: Заказ " + cleanId, "scan-success");
             } else {
                 console.error("Детали ошибки Supabase:", error);
                 
-                // Проверяем на ошибку внешнего ключа (код 23503)
                 if (error.code === '23503') {
                     updateScanStatus("Ошибка: Заказа " + cleanId + " нет в базе!", "scan-error");
                 } else {
@@ -464,7 +465,6 @@
             const list = document.getElementById('client-orders-list');
             list.innerHTML = '';
             
-            // Кнопка сканера для клиента
             const scanBtnHTML = `<button class="btn-scan-client" onclick="openClientScanner()">📷 Сканировать коробку</button>`;
             list.innerHTML += scanBtnHTML;
 
@@ -477,6 +477,7 @@
                 
                 const card = document.createElement('div');
                 card.className = 'client-order-card';
+                // Меняем вывод на "Заказ 1"
                 card.innerHTML = `
                     <h3>Заказ ${order.id}</h3>
                     <p>${items}</p>
@@ -507,7 +508,7 @@
                 isScanning = true;
                 if (navigator.vibrate) navigator.vibrate(200);
                 
-                const cleanText = text.trim().toUpperCase();
+                const cleanText = text.trim(); // Убираем пробелы
                 const isMine = clientOrders.find(o => o.id === cleanText);
                 
                 if (isMine) {
