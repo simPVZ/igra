@@ -2,164 +2,315 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ПВЗ Симулятор - Оператор</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Симулятор ПВЗ</title>
+    <!-- Подключаем Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Подключаем библиотеку сканера (нужна только для роли сканера) -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <style>
-        :root { --primary: #4a148c; --secondary: #f3e5f5; --text: #333; --success: #4caf50; --warning: #ff9800; --danger: #f44336; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f5f5f5; color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 250px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
-        .sidebar h2 { margin-top: 0; font-size: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
-        .sidebar-btn { background: none; border: none; color: white; text-align: left; padding: 15px 10px; cursor: pointer; font-size: 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
-        .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
-        .sidebar-btn.active { background: rgba(255,255,255,0.2); font-weight: bold; }
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { margin: 0; font-size: 28px; }
-        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-        .status-badge.connected { background: #e8f5e9; color: #2e7d32; }
-        .status-badge.disconnected { background: #ffebee; color: #c62828; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; }
-        th { color: #777; font-weight: normal; font-size: 14px; }
-        .status-in_transit { color: #777; } .status-accepted { color: var(--warning); }
-        .status-placed { color: var(--primary); font-weight: bold; } .status-issued { color: var(--success); }
-        .status-returned { color: var(--danger); } .status-lost { color: var(--danger); font-weight: bold; }
-        .controls { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        /* --- ОБЩИЕ СТИЛИ --- */
+        :root {
+            --primary: #4a148c; --secondary: #f3e5f5; --text: #333;
+            --success: #4caf50; --warning: #ff9800; --danger: #f44336;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f5f5f5; color: var(--text); height: 100vh; overflow: hidden; }
+        .hidden { display: none !important; }
+        
+        /* --- ЭКРАН ВЫБОРА РОЛИ --- */
+        #screen-roles { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--primary); color: white; padding: 20px; box-sizing: border-box; }
+        #screen-roles h1 { font-size: 32px; margin-bottom: 40px; text-align: center; }
+        .role-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 400px; }
+        .role-btn { background: white; color: var(--primary); border: none; border-radius: 12px; padding: 20px; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .role-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .role-btn svg { width: 32px; height: 32px; }
+
+        /* --- ОБЩИЕ КОМПОНЕНТЫ ИНТЕРФЕЙСА --- */
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .app-header h2 { margin: 0; font-size: 20px; }
+        .btn-back { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-back:hover { background: rgba(255,255,255,0.3); }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { opacity: 0.9; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+
+        /* --- ЭКРАН СОТРУДНИКА (ОПЕРАТОР) --- */
+        #screen-employee { display: flex; flex-direction: row; height: 100vh; }
+        .emp-sidebar { width: 250px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .emp-main { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #f5f5f5; }
+        .emp-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .emp-card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 15px; color: var(--primary); }
+        .emp-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .emp-table th, .emp-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .emp-table th { color: #777; font-weight: normal; font-size: 14px; }
+        .status-in_transit { color: #777; } .status-accepted { color: var(--warning); }
+        .status-placed { color: var(--primary); font-weight: bold; } .status-issued { color: var(--success); }
+        .emp-search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .emp-search-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; }
         .modal-list { text-align: left; margin: 20px 0; max-height: 300px; overflow-y: auto; }
         .modal-list li { padding: 8px 0; border-bottom: 1px solid #eee; }
+
+        /* --- ЭКРАН СКАНЕРА --- */
+        #screen-scanner { display: flex; flex-direction: column; height: 100vh; background: #222; color: white; }
+        #scanner-reader { width: 100%; flex: 1; background: #000; }
+        .scan-controls { padding: 20px; background: #333; display: flex; flex-direction: column; gap: 10px; }
+        .scan-controls input { padding: 15px; font-size: 16px; border-radius: 8px; border: none; text-align: center; }
+        .scan-controls button { padding: 15px; font-size: 18px; border-radius: 8px; border: none; background: var(--success); color: white; font-weight: bold; }
+        #scan-status { text-align: center; padding: 10px; font-weight: bold; font-size: 16px; }
+        .scan-success { color: var(--success); } .scan-error { color: var(--danger); }
+
+        /* --- ЭКРАН КЛИЕНТА --- */
+        #screen-client { display: flex; flex-direction: column; height: 100vh; background: #f0f0f0; }
+        .client-content { padding: 20px; flex: 1; overflow-y: auto; }
+        .client-login { text-align: center; margin-top: 50px; }
+        .client-login input { padding: 15px; font-size: 18px; width: 80%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; text-align: center; }
+        .client-login button { padding: 15px 30px; font-size: 18px; background: var(--primary); color: white; border: none; border-radius: 8px; width: 80%; max-width: 300px; }
+        .client-order-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .client-order-card h3 { margin: 0 0 10px 0; color: var(--primary); }
+        .client-order-card p { margin: 5px 0; color: #666; }
+        .btn-show { display: block; width: 100%; padding: 12px; background: var(--warning); color: white; text-align: center; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
+        
+        /* Экран QR клиента */
+        #client-qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        #client-qr-screen h1 { font-size: 50px; margin: 0; color: var(--primary); letter-spacing: 2px; text-align: center; word-break: break-all; padding: 0 20px; }
+        #client-qr-screen p { font-size: 20px; color: #666; margin-top: 20px; }
+        .close-qr { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 40px; color: var(--danger); cursor: pointer; }
+
+        /* Уведомления клиента */
+        #client-notification { position: fixed; top: -100px; left: 0; width: 100%; padding: 20px; text-align: center; color: white; font-size: 20px; font-weight: bold; transition: top 0.3s; z-index: 200; box-sizing: border-box; }
+        #client-notification.show { top: 0; }
+        .notif-success { background: var(--success); } .notif-warning { background: var(--warning); } .notif-danger { background: var(--danger); }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>ПВЗ Симулятор</h2>
-        <button class="sidebar-btn active">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            Главная
-        </button>
-        <button class="sidebar-btn" onclick="openEndShiftModal()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            Окончить смену
-        </button>
-        <div style="margin-top: auto; font-size: 12px; opacity: 0.7;">
-            <p>Техподдержка 24/7<br>+7 (999) 123-45-67</p>
+
+    <!-- ========================================== -->
+    <!-- 1. ЭКРАН ВЫБОРА РОЛИ                       -->
+    <!-- ========================================== -->
+    <div id="screen-roles">
+        <h1>Симулятор ПВЗ</h1>
+        <div class="role-container">
+            <button class="role-btn" onclick="startRole('employee')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Сотрудник (Оператор)
+            </button>
+            <button class="role-btn" onclick="startRole('scanner')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle><path d="M16 8h.01"></path><path d="M8 8h.01"></path></svg>
+                Сканер (Приёмка)
+            </button>
+            <button class="role-btn" onclick="startRole('client')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                Клиент
+            </button>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <h1>Панель оператора</h1>
-            <div id="connection-status" class="status-badge disconnected">Подключение...</div>
+    <!-- ========================================== -->
+    <!-- 2. ИНТЕРФЕЙС СОТРУДНИКА                    -->
+    <!-- ========================================== -->
+    <div id="screen-employee" class="hidden">
+        <div class="emp-sidebar">
+            <h2 style="margin-top:0; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">ПВЗ Оператор</h2>
+            <button class="btn-back" style="margin-bottom: 20px; justify-content: center;" onclick="exitRole()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Сменить роль
+            </button>
+            <button class="btn-back" style="background:rgba(255,255,255,0.1); justify-content: center;" onclick="openEndShiftModal()">Окончить смену</button>
         </div>
-
-        <div class="card">
-            <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Выдача заказа</h3>
-            <div class="search-box">
-                <input type="text" id="issue-input" placeholder="Введите номер заказа (например, PVZ-0001)" onkeypress="handleIssueKeyPress(event)">
-                <button class="btn btn-primary" onclick="issueOrder()">Найти и выдать</button>
+        <div class="emp-main">
+            <div class="emp-card">
+                <h3>Выдача заказа</h3>
+                <div class="emp-search-box">
+                    <input type="text" id="issue-input" placeholder="Номер заказа (PVZ-0001)" onkeypress="if(event.key==='Enter') issueOrder()">
+                    <button class="btn btn-primary" onclick="issueOrder()">Найти</button>
+                </div>
+                <p id="issue-message" style="color: var(--primary); font-weight: bold;"></p>
             </div>
-            <p id="issue-message" style="color: var(--primary); font-weight: bold;"></p>
+            <div class="emp-card" style="flex: 1;">
+                <h3>Склад (Принято: <span id="count-accepted">0</span>)</h3>
+                <table class="emp-table">
+                    <thead><tr><th>Номер</th><th>Товары</th><th>Клиент</th><th>Статус</th><th>Коробка</th></tr></thead>
+                    <tbody id="orders-table-body"></tbody>
+                </table>
+            </div>
         </div>
-
-        <div class="card" style="flex: 1;">
-            <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Поставки и склад (Принято: <span id="count-accepted">0</span>)</h3>
-            <table>
-                <thead><tr><th>Номер</th><th>Товары</th><th>Клиент</th><th>Статус</th><th>Коробка (1-50)</th></tr></thead>
-                <tbody id="orders-table-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="shift-modal">
-        <div class="modal">
-            <h2>Сверка перед закрытием смены</h2>
-            <p>Проверьте физическое наличие коробок:</p>
-            <ul class="modal-list" id="modal-list"></ul>
-            <div class="controls" style="justify-content: center;">
-                <button class="btn btn-primary" onclick="confirmEndShift()">Подтвердить окончание</button>
-                <button class="btn" style="background: #eee;" onclick="closeEndShiftModal()">Отмена</button>
+        <!-- Модалка окончания смены -->
+        <div class="modal-overlay" id="shift-modal">
+            <div class="modal">
+                <h2>Сверка склада</h2>
+                <ul class="modal-list" id="modal-list"></ul>
+                <button class="btn btn-primary" onclick="confirmEndShift()">Подтвердить</button>
+                <button class="btn" style="background:#eee;" onclick="document.getElementById('shift-modal').style.display='none'">Отмена</button>
             </div>
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 3. ИНТЕРФЕЙС СКАНЕРА                       -->
+    <!-- ========================================== -->
+    <div id="screen-scanner" class="hidden">
+        <div class="app-header">
+            <h2>Сканер приёмки</h2>
+            <button class="btn-back" onclick="exitRole()">Назад</button>
+        </div>
+        <div id="scanner-reader"></div>
+        <div class="scan-controls">
+            <div id="scan-status">Наведите камеру на QR-код</div>
+            <input type="text" id="manual-input" placeholder="Ввод вручную" onkeypress="if(event.key==='Enter') manualScan()">
+            <button onclick="manualScan()">Отправить код</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. ИНТЕРФЕЙС КЛИЕНТА                       -->
+    <!-- ========================================== -->
+    <div id="screen-client" class="hidden">
+        <div id="client-notification"></div>
+        <div class="app-header">
+            <h2>Мои заказы</h2>
+            <button class="btn-back" onclick="exitRole()">Назад</button>
+        </div>
+        
+        <div class="client-content">
+            <!-- Форма входа -->
+            <div id="client-login-screen" class="client-login">
+                <h3>Введите ваше имя:</h3>
+                <input type="text" id="client-name" placeholder="Например: Анна">
+                <button onclick="clientLogin()">Войти</button>
+            </div>
+            
+            <!-- Список заказов -->
+            <div id="client-orders-list" class="hidden"></div>
+        </div>
+
+        <!-- Полноэкранный QR -->
+        <div id="client-qr-screen" class="hidden">
+            <button class="close-qr" onclick="closeClientQR()">×</button>
+            <h1 id="client-big-id">PVZ-0001</h1>
+            <p>Покажите оператору</p>
+            <svg width="200" height="200" viewBox="0 0 100 100" style="margin-top: 20px;">
+                <rect x="10" y="10" width="80" height="80" fill="none" stroke="black" stroke-width="2"/>
+                <rect x="20" y="20" width="20" height="20" fill="black"/>
+                <rect x="60" y="20" width="20" height="20" fill="black"/>
+                <rect x="20" y="60" width="20" height="20" fill="black"/>
+                <rect x="45" y="45" width="10" height="10" fill="black"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT ЛОГИКА                          -->
+    <!-- ========================================== -->
     <script>
+        // --- КОНФИГУРАЦИЯ SUPABASE ---
         const SUPABASE_URL = 'https://gfqcrsznivcqlqviexit.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_xfLiWRP0CUw8RVBOzjLwew_IvfkWLmg';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let orders = [];
-        let isShiftEnded = false;
+        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+        let html5QrCode = null;
+        let empOrders = [];
+        let clientOrders = [];
+        let clientName = '';
+        let activeQR = null;
 
-        async function init() {
-            await loadOrders();
-            subscribeToRealtime();
-            updateConnectionStatus('connected');
+        // --- УПРАВЛЕНИЕ ЭКРАНАМИ ---
+        function startRole(role) {
+            document.getElementById('screen-roles').classList.add('hidden');
+            
+            if (role === 'employee') {
+                document.getElementById('screen-employee').classList.remove('hidden');
+                initEmployee();
+            } else if (role === 'scanner') {
+                document.getElementById('screen-scanner').classList.remove('hidden');
+                initScanner();
+            } else if (role === 'client') {
+                document.getElementById('screen-client').classList.remove('hidden');
+            }
         }
 
-        async function loadOrders() {
-            const { data, error } = await supabaseClient.from('orders').select(`*, order_items (*)`).order('id');
-            if (error) { console.error(error); return; }
-            orders = data;
-            renderTable();
-            updateCounters();
+        function exitRole() {
+            // Самый надежный способ сбросить камеру и отписки от Supabase - перезагрузить страницу
+            location.reload();
         }
 
-        function subscribeToRealtime() {
-            supabaseClient.channel('main-channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
-                    if (payload.eventType === 'UPDATE') {
-                        const index = orders.findIndex(o => o.id === payload.new.id);
-                        if (index !== -1) {
-                            payload.new.order_items = orders[index].order_items; // сохраняем товары
-                            orders[index] = payload.new;
-                            renderTable();
-                            updateCounters();
-                        }
+        // ==========================================
+        // ЛОГИКА СОТРУДНИКА (ОПЕРАТОРА)
+        // ==========================================
+        async function initEmployee() {
+            await loadEmpOrders();
+            
+            // Слушаем изменения заказов
+            supabaseClient.channel('emp-orders')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
+                    const idx = empOrders.findIndex(o => o.id === payload.new.id);
+                    if (idx !== -1) {
+                        payload.new.order_items = empOrders[idx].order_items; // Сохраняем товары
+                        empOrders[idx] = payload.new;
+                        renderEmpTable();
+                        updateEmpCounters();
                     }
                 }).subscribe();
 
-            supabaseClient.channel('scanner-channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scans' }, async payload => {
-                    await processScan(payload.new.order_id);
+            // Слушаем сканер
+            supabaseClient.channel('emp-scans')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scans' }, payload => {
+                    processEmpScan(payload.new.order_id);
                 }).subscribe();
         }
 
-        async function processScan(orderId) {
-            const order = orders.find(o => o.id === orderId);
+        async function loadEmpOrders() {
+            const { data, error } = await supabaseClient.from('orders').select(`*, order_items (*)`).order('id');
+            if (error) return console.error(error);
+            empOrders = data;
+            renderEmpTable();
+            updateEmpCounters();
+        }
+
+        function renderEmpTable() {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+            const sorted = [...empOrders].sort((a, b) => {
+                const p = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4 };
+                return (p[a.status] || 99) - (p[b.status] || 99);
+            });
+            sorted.forEach(o => {
+                const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
+                tbody.innerHTML += `<tr><td><strong>${o.id}</strong></td><td>${items}</td><td>${o.customer_name}</td><td><span class="status-${o.status}">${o.status}</span></td><td>${o.box_number ? '№ '+o.box_number : '—'}</td></tr>`;
+            });
+        }
+
+        function updateEmpCounters() {
+            document.getElementById('count-accepted').textContent = empOrders.filter(o => o.status === 'accepted' || o.status === 'placed').length;
+        }
+
+        async function processEmpScan(orderId) {
+            const order = empOrders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
-            const used = orders.filter(o => o.box_number !== null).map(o => o.box_number);
+            const used = empOrders.filter(o => o.box_number !== null).map(o => o.box_number);
             let free = 1;
             while (used.includes(free) && free <= 50) free++;
-
-            if (free > 50) { alert("Склад переполнен!"); return; }
+            if (free > 50) return alert("Склад переполнен!");
 
             const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
-            if (!error) speak(`Принят заказ ${orderId}. Коробка ${free}`);
+            if (!error) empSpeak(`Принят заказ ${orderId}. Коробка ${free}`);
         }
 
         async function issueOrder() {
-            if (isShiftEnded) return;
             const input = document.getElementById('issue-input');
             const orderId = input.value.trim().toUpperCase();
             const msgEl = document.getElementById('issue-message');
             if (!orderId) return;
 
-            const order = orders.find(o => o.id === orderId);
-            if (!order) { msgEl.style.color = 'var(--danger)'; msgEl.textContent = 'Заказ не найден.'; return; }
+            const order = empOrders.find(o => o.id === orderId);
+            if (!order) { msgEl.style.color = 'var(--danger)'; msgEl.textContent = 'Не найден.'; return; }
             if (order.status === 'issued') { msgEl.style.color = 'var(--warning)'; msgEl.textContent = 'Уже выдан.'; return; }
-            if (order.status !== 'placed' && order.status !== 'accepted') { msgEl.style.color = 'var(--danger)'; msgEl.textContent = `Не принят (статус: ${order.status}).`; return; }
+            if (order.status !== 'placed' && order.status !== 'accepted') { msgEl.style.color = 'var(--danger)'; msgEl.textContent = `Не принят (${order.status}).`; return; }
 
-            speak(`Заказ ${orderId}. Коробка ${order.box_number}.`);
+            empSpeak(`Заказ ${orderId}. Коробка ${order.box_number}.`);
             if (confirm(`Найдена коробка №${order.box_number} для ${order.customer_name}?`)) {
                 const { error } = await supabaseClient.from('orders').update({ status: 'issued' }).eq('id', orderId);
                 if (!error) {
@@ -170,52 +321,167 @@
             }
         }
 
-        function handleIssueKeyPress(e) { if (e.key === 'Enter') issueOrder(); }
-
-        function renderTable() {
-            const tbody = document.getElementById('orders-table-body');
-            tbody.innerHTML = '';
-            const sorted = [...orders].sort((a, b) => {
-                const p = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4 };
-                return (p[a.status] || 99) - (p[b.status] || 99);
-            });
-            sorted.forEach(o => {
-                const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
-                tbody.innerHTML += `<tr><td><strong>${o.id}</strong></td><td>${items}</td><td>${o.customer_name}</td><td><span class="status-${o.status}">${o.status}</span></td><td>${o.box_number ? '№ '+o.box_number : '—'}</td></tr>`;
-            });
+        function openEndShiftModal() {
+            const list = document.getElementById('modal-list');
+            const placed = empOrders.filter(o => o.status === 'accepted' || o.status === 'placed');
+            list.innerHTML = placed.length === 0 ? '<li>Склад пуст.</li>' : `<li><strong>Осталось: ${placed.length} шт.</strong></li>`;
+            placed.forEach(o => list.innerHTML += `<li>Коробка №${o.box_number} — ${o.id}</li>`);
+            document.getElementById('shift-modal').style.display = 'flex';
         }
 
-        function updateCounters() {
-            document.getElementById('count-accepted').textContent = orders.filter(o => o.status === 'accepted' || o.status === 'placed').length;
+        function confirmEndShift() {
+            document.getElementById('shift-modal').style.display = 'none';
+            empSpeak("Смена окончена."); alert("Смена завершена!");
         }
 
-        function updateConnectionStatus(s) {
-            const el = document.getElementById('connection-status');
-            el.textContent = s === 'connected' ? 'Онлайн' : 'Нет связи';
-            el.className = `status-badge ${s}`;
-        }
-
-        function speak(text) {
+        function empSpeak(text) {
             if ('speechSynthesis' in window) {
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = 'ru-RU'; window.speechSynthesis.speak(u);
             }
         }
 
-        function openEndShiftModal() {
-            const list = document.getElementById('modal-list');
-            const placed = orders.filter(o => o.status === 'accepted' || o.status === 'placed');
-            list.innerHTML = placed.length === 0 ? '<li>Склад пуст.</li>' : `<li><strong>На складе: ${placed.length} шт.</strong></li>`;
-            placed.forEach(o => list.innerHTML += `<li>Коробка №${o.box_number} — ${o.id} (${o.customer_name})</li>`);
-            document.getElementById('shift-modal').style.display = 'flex';
-        }
-        function closeEndShiftModal() { document.getElementById('shift-modal').style.display = 'none'; }
-        function confirmEndShift() {
-            isShiftEnded = true; closeEndShiftModal();
-            speak("Смена окончена."); alert("Смена завершена!");
+        // ==========================================
+        // ЛОГИКА СКАНЕРА
+        // ==========================================
+        function initScanner() {
+            html5QrCode = new Html5Qrcode("scanner-reader");
+            let isScanning = false;
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    html5QrCode.start(
+                        { facingMode: "environment" }, 
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            if (isScanning) return;
+                            isScanning = true;
+                            if (navigator.vibrate) navigator.vibrate(200);
+                            
+                            updateScanStatus("Отправка: " + decodedText, "");
+                            sendScan(decodedText);
+                            
+                            setTimeout(() => { 
+                                isScanning = false; 
+                                updateScanStatus("Наведите камеру", "");
+                            }, 2000);
+                        },
+                        () => {} // Игнорируем ошибки поиска
+                    ).catch(err => updateScanStatus("Ошибка камеры", "scan-error"));
+                }
+            }).catch(() => updateScanStatus("Нет доступа к камере", "scan-error"));
         }
 
-        init();
+        function updateScanStatus(text, className) {
+            const el = document.getElementById('scan-status');
+            el.innerText = text;
+            el.className = className;
+        }
+
+        async function sendScan(orderId) {
+            const { error } = await supabaseClient.from('scans').insert([{ order_id: orderId, scanner_id: 'mobile' }]);
+            if (!error) updateScanStatus("УСПЕШНО: " + orderId, "scan-success");
+            else updateScanStatus("Ошибка: " + error.message, "scan-error");
+        }
+
+        function manualScan() {
+            const input = document.getElementById('manual-input');
+            const val = input.value.trim().toUpperCase();
+            if (val) {
+                sendScan(val);
+                input.value = '';
+            }
+        }
+
+        // ==========================================
+        // ЛОГИКА КЛИЕНТА
+        // ==========================================
+        async function clientLogin() {
+            const nameInput = document.getElementById('client-name').value.trim();
+            if (!nameInput) return;
+            clientName = nameInput;
+            
+            document.getElementById('client-login-screen').classList.add('hidden');
+            document.getElementById('client-orders-list').classList.remove('hidden');
+
+            await fetchClientOrders();
+            
+            // Подписка на обновления именно для этого клиента
+            supabaseClient.channel('client-updates')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
+                    const updated = payload.new;
+                    if (updated.customer_name !== clientName) return;
+
+                    const idx = clientOrders.findIndex(o => o.id === updated.id);
+                    if (idx !== -1) {
+                        clientOrders[idx] = { ...clientOrders[idx], ...updated };
+                        renderClientOrders();
+                    }
+
+                    if (activeQR === updated.id) {
+                        showClientNotification(updated.status);
+                        closeClientQR();
+                    }
+                }).subscribe();
+        }
+
+        async function fetchClientOrders() {
+            const { data, error } = await supabaseClient.from('orders')
+                .select(`*, order_items (*)`)
+                .eq('customer_name', clientName);
+            if (error) return alert("Ошибка загрузки");
+            clientOrders = data;
+            renderClientOrders();
+        }
+
+        function renderClientOrders() {
+            const list = document.getElementById('client-orders-list');
+            list.innerHTML = '';
+            if (clientOrders.length === 0) {
+                list.innerHTML = '<p style="text-align:center;">У вас нет заказов.</p>';
+                return;
+            }
+
+            clientOrders.forEach(order => {
+                if (order.status === 'issued' || order.status === 'returned' || order.status === 'lost') return; // Скрываем финальные
+
+                const items = order.order_items ? order.order_items.map(i => i.product_name).join(', ') : 'Товары';
+                let statusText = order.status === 'in_transit' ? 'В пути' : 'Готов к выдаче!';
+                if (order.status === 'accepted') statusText = 'Принят на склад';
+
+                const card = document.createElement('div');
+                card.className = 'client-order-card';
+                card.innerHTML = `
+                    <h3>Заказ ${order.id}</h3>
+                    <p>${items}</p>
+                    <p style="font-weight:bold; color:${order.status === 'in_transit' ? '#777' : 'var(--success)'};">${statusText}</p>
+                    ${order.status !== 'in_transit' ? `<button class="btn-show" onclick="showClientQR('${order.id}')">Показать номер</button>` : ''}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function showClientQR(id) {
+            activeQR = id;
+            document.getElementById('client-big-id').innerText = id;
+            document.getElementById('client-qr-screen').classList.remove('hidden');
+        }
+
+        function closeClientQR() {
+            activeQR = null;
+            document.getElementById('client-qr-screen').classList.add('hidden');
+        }
+
+        function showClientNotification(status) {
+            const notif = document.getElementById('client-notification');
+            notif.className = 'show';
+            
+            if (status === 'issued') { notif.innerText = 'Заказ выдан!'; notif.classList.add('notif-success'); }
+            else if (status === 'returned') { notif.innerText = 'Оформлен возврат.'; notif.classList.add('notif-warning'); }
+            else if (status === 'lost') { notif.innerText = 'Заказ утерян.'; notif.classList.add('notif-danger'); }
+
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
     </script>
 </body>
 </html>
