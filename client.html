@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Клиент ПВЗ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f0f0f0; color: #333; display: flex; flex-direction: column; height: 100vh; }
+        .header { padding: 20px; background: #4a148c; color: white; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .content { padding: 20px; flex: 1; overflow-y: auto; }
+        .hidden { display: none !important; }
+        
+        /* Экран входа */
+        #login-screen { text-align: center; margin-top: 50px; }
+        #login-screen input { padding: 15px; font-size: 18px; width: 80%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; text-align: center; }
+        #login-screen button { padding: 15px 30px; font-size: 18px; background: #4a148c; color: white; border: none; border-radius: 8px; width: 80%; max-width: 300px; }
+
+        /* Список заказов */
+        .order-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .order-card h3 { margin: 0 0 10px 0; color: #4a148c; }
+        .order-card p { margin: 5px 0; color: #666; }
+        .btn-show { display: block; width: 100%; padding: 12px; background: #ff9800; color: white; text-align: center; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        
+        /* Полноэкранный QR */
+        #qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        #qr-screen h1 { font-size: 60px; margin: 0; color: #4a148c; letter-spacing: 2px; text-align: center; word-break: break-all; padding: 0 20px; }
+        #qr-screen p { font-size: 20px; color: #666; margin-top: 20px; }
+        .close-qr { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 30px; color: #f44336; cursor: pointer; }
+
+        /* Уведомления */
+        #notification { position: fixed; top: -100px; left: 0; width: 100%; padding: 20px; text-align: center; color: white; font-size: 20px; font-weight: bold; transition: top 0.3s; z-index: 200; }
+        #notification.show { top: 0; }
+        .notif-success { background: #4caf50; }
+        .notif-warning { background: #ff9800; }
+        .notif-danger { background: #f44336; }
+    </style>
+</head>
+<body>
+    <!-- Уведомление -->
+    <div id="notification"></div>
+
+    <!-- Экран входа -->
+    <div id="login-screen">
+        <h2>Вход в приложение</h2>
+        <p>Введите ваше имя (как в заказе):</p>
+        <input type="text" id="client-name" placeholder="Например: Анна">
+        <button onclick="login()">Войти</button>
+    </div>
+
+    <!-- Основной экран -->
+    <div id="main-screen" class="hidden" style="display: flex; flex-direction: column; height: 100vh;">
+        <div class="header">
+            <h1>Мои заказы</h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px;" id="greeting"></p>
+        </div>
+        <div class="content" id="orders-list">
+            <!-- Сюда падают карточки заказов -->
+        </div>
+    </div>
+
+    <!-- Экран показа QR -->
+    <div id="qr-screen" class="hidden">
+        <button class="close-qr" onclick="closeQR()">×</button>
+        <h1 id="big-order-id">PVZ-0001</h1>
+        <p>Покажите этот номер оператору</p>
+        <svg id="big-qr-svg" width="200" height="200" viewBox="0 0 100 100" style="margin-top: 20px;"></svg>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gfqcrsznivcqlqviexit.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_xfLiWRP0CUw8RVBOzjLwew_IvfkWLmg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentName = '';
+        let myOrders = [];
+        let activeOrderId = null;
+
+        async function login() {
+            const nameInput = document.getElementById('client-name').value.trim();
+            if (!nameInput) return;
+            
+            currentName = nameInput;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('greeting').innerText = `Клиент: ${currentName}`;
+
+            await fetchOrders();
+            subscribeToUpdates();
+        }
+
+        async function fetchOrders() {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select(`*, order_items (*)`)
+                .eq('customer_name', currentName);
+
+            if (error) { alert("Ошибка загрузки"); return; }
+            myOrders = data;
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = '';
+            
+            if (myOrders.length === 0) {
+                list.innerHTML = '<p>У вас нет заказов.</p>';
+                return;
+            }
+
+            myOrders.forEach(order => {
+                // Показываем только те, что в пути или готовы (не финальные)
+                if (order.status === 'issued' || order.status === 'returned' || order.status === 'lost') {
+                    return; 
+                }
+
+                const items = order.order_items ? order.order_items.map(i => i.product_name).join(', ') : 'Товары';
+                let statusText = order.status === 'in_transit' ? 'В пути (ожидает приёмки)' : 'Готов к выдаче!';
+                if (order.status === 'accepted') statusText = 'Принят на склад (скоро будет готов)';
+
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.innerHTML = `
+                    <h3>Заказ ${order.id}</h3>
+                    <p>${items}</p>
+                    <p style="font-weight: bold; color: ${order.status === 'in_transit' ? '#777' : '#4caf50'};">
+                        ${statusText}
+                    </p>
+                    ${order.status !== 'in_transit' ? `<button class="btn-show" onclick="showQR('${order.id}')">Показать номер</button>` : ''}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function showQR(orderId) {
+            activeOrderId = orderId;
+            document.getElementById('big-order-id').innerText = orderId;
+            document.getElementById('qr-screen').classList.remove('hidden');
+            
+            // Простая отрисовка псевдо-QR (квадрат с полосками для визуализации)
+            const svg = document.getElementById('big-qr-svg');
+            svg.innerHTML = `
+                <rect x="10" y="10" width="80" height="80" fill="none" stroke="black" stroke-width="2"/>
+                <rect x="20" y="20" width="20" height="20" fill="black"/>
+                <rect x="60" y="20" width="20" height="20" fill="black"/>
+                <rect x="20" y="60" width="20" height="20" fill="black"/>
+                <rect x="45" y="45" width="10" height="10" fill="black"/>
+            `;
+        }
+
+        function closeQR() {
+            document.getElementById('qr-screen').classList.add('hidden');
+            activeOrderId = null;
+        }
+
+        function subscribeToUpdates() {
+            supabaseClient.channel('client-channel')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
+                    const updatedOrder = payload.new;
+                    // Проверяем, наш ли это заказ
+                    if (updatedOrder.customer_name !== currentName) return;
+
+                    // Обновляем локальный массив
+                    const index = myOrders.findIndex(o => o.id === updatedOrder.id);
+                    if (index !== -1) {
+                        myOrders[index] = { ...myOrders[index], ...updatedOrder };
+                        renderOrders();
+                    }
+
+                    // Если открыт QR и статус изменился - показываем уведомление
+                    if (activeOrderId === updatedOrder.id) {
+                        showNotification(updatedOrder.status);
+                        closeQR();
+                    }
+                }).subscribe();
+        }
+
+        function showNotification(status) {
+            const notif = document.getElementById('notification');
+            notif.className = 'show';
+            
+            if (status === 'issued') {
+                notif.innerText = 'Заказ выдан!';
+                notif.classList.add('notif-success');
+            } else if (status === 'returned') {
+                notif.innerText = 'Оформлен возврат.';
+                notif.classList.add('notif-warning');
+            } else if (status === 'lost') {
+                notif.innerText = 'Заказ утерян. Мы вернем деньги.';
+                notif.classList.add('notif-danger');
+            }
+
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
