@@ -17,105 +17,72 @@
         
         /* ЭКРАН ВЫБОРА РОЛИ */
         #screen-roles { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--primary); color: white; padding: 20px; box-sizing: border-box; }
-        #screen-roles h1 { font-size: 32px; margin-bottom: 40px; text-align: center; }
-        .role-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 400px; }
-        .role-btn { background: white; color: var(--primary); border: none; border-radius: 12px; padding: 20px; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); justify-content: center;}
+        .role-btn { background: white; color: var(--primary); border: none; border-radius: 12px; padding: 20px; font-size: 20px; font-weight: bold; width: 100%; max-width: 400px; margin-bottom: 15px; cursor: pointer; text-align: center; transition: transform 0.2s; }
         .role-btn:hover { transform: translateY(-2px); }
 
         /* ОБЩИЕ КОМПОНЕНТЫ */
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--primary); color: white; }
-        .app-header h2 { margin: 0; font-size: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { opacity: 0.9; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
 
         /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; font-size: 18px; }
         .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
 
-        /* СОТРУДНИК (УВЕЛИЧЕНО НА 10%) */
-        #screen-employee { display: flex; flex-direction: row; height: 100vh; font-size: 110%; }
-        .emp-sidebar { width: 250px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; overflow-y: auto;}
-        
-        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ КНОПОК В МЕНЮ */
-        .emp-sidebar button {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 12px;
-            width: 100%;
-            font-size: 16px;
-            transition: 0.2s;
-        }
-        .emp-sidebar button:hover { background: rgba(255, 255, 255, 0.3); }
+        /* ТОСТ-УВЕДОМЛЕНИЯ (ПРАВЫЙ НИЖНИЙ УГОЛ) */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 6px solid var(--primary); padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; width: 300px; animation: slideIn 0.3s forwards; }
+        .toast.fade-out { animation: fadeOut 0.5s forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast-icon svg { width: 30px; height: 30px; stroke: var(--primary); }
 
-        .emp-main { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 25px; }
+        /* СОТРУДНИК */
+        #screen-employee { display: flex; flex-direction: row; height: 100vh; font-size: 110%; }
+        .emp-sidebar { width: 280px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        .emp-sidebar button { background: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 12px; width: 100%; font-size: 16px; transition: 0.2s; position: relative; }
+        .emp-sidebar button:hover { background: rgba(255, 255, 255, 0.3); }
+        .red-dot { position: absolute; top: 10px; right: 15px; width: 12px; height: 12px; background: var(--danger); border-radius: 50%; display: none; }
+        
+        .emp-main { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .emp-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .emp-card h3 { margin-top: 0; font-size: 20px; margin-bottom: 15px; color: var(--primary); }
         .emp-table { width: 100%; border-collapse: collapse; text-align: left; }
         .emp-table th, .emp-table td { padding: 15px 12px; border-bottom: 1px solid #eee; }
-        .emp-table th { color: #777; font-weight: normal; font-size: 15px; }
-        
-        /* Цвета статусов */
-        .st-in_transit { color: #777; } .st-accepted { color: var(--warning); }
-        .st-placed { color: var(--primary); font-weight: bold; } .st-issued { color: var(--success); }
-        .st-returned { color: var(--danger); font-weight: bold; }
-        
-        /* КНОПКИ В ТАБЛИЦЕ */
-        .btn-small { padding: 6px 12px; font-size: 14px; border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
-        
-        /* АКТИВНЫЙ ЗАКАЗ */
-        #focused-order-panel { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 12px; padding: 25px; display: none; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.2); }
-        #focused-order-panel h2 { margin-top: 0; color: #0d47a1; font-size: 22px;}
-        .focus-actions { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;}
-        .btn-issue { background: var(--success); color: white; flex: 1; padding: 15px; font-size: 18px;}
-        .btn-return { background: var(--danger); color: white; flex: 1; padding: 15px; font-size: 18px;}
-        .btn-pay { background: var(--warning); color: white; flex: 1 1 100%; padding: 15px; font-size: 18px;}
+        .btn-small { padding: 8px 15px; font-size: 14px; border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
 
-        /* ОТЗЫВЫ */
-        .reviews-header { display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
-        .reviews-score { font-size: 48px; font-weight: bold; line-height: 1; }
-        .stars-container { color: #ffc107; font-size: 24px; }
-        .review-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; }
-        .review-content { flex: 1; }
-        .review-author { font-weight: bold; font-size: 14px; }
-        .review-stars { color: #ffc107; font-size: 14px; margin: 5px 0; }
-        .review-text { font-size: 14px; color: #444; }
+        /* ЧАТ */
+        #chat-messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 8px; max-width: 80%; font-size: 15px; }
+        .msg.client { background: #e3f2fd; align-self: flex-start; }
+        .msg.employee { background: #e8f5e9; align-self: flex-end; }
 
-        /* ФИНАНСЫ */
-        .finance-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-        .chart-bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; position: relative; min-height: 5px;}
-        .chart-label { position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #777; }
+        /* КАССА */
+        .cashier-total { font-size: 24px; font-weight: bold; margin: 15px 0; color: var(--primary); }
+        .cashier-input { width: 100%; padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
 
         /* СКАНЕРЫ */
-        #screen-scanner, #emp-client-scanner, #screen-client-scanner { display: flex; flex-direction: column; height: 100vh; background: #222; color: white; position: fixed; top:0; left:0; width:100%; z-index: 500; }
-        .status-bar-top { padding: 15px; text-align: center; font-weight: bold; background: #333; min-height: 24px; border-bottom: 1px solid #444; }
-        .scan-success { color: var(--success); } .scan-error { color: var(--danger); }
-        #scanner-reader, #emp-client-reader, #role-client-reader { width: 100%; flex: 1; background: #000; }
-        .scan-controls { padding: 20px; background: #333; display: flex; flex-direction: column; gap: 10px; }
-        .scan-controls input { padding: 15px; font-size: 16px; border-radius: 8px; border: none; text-align: center; }
-        .scan-controls button { padding: 15px; font-size: 18px; border-radius: 8px; border: none; background: var(--success); color: white; font-weight: bold; }
+        #screen-scanner, #screen-client-scanner { display: flex; flex-direction: column; height: 100vh; background: #222; color: white; position: fixed; top:0; left:0; width:100%; z-index: 500; }
+        .status-bar-top { padding: 15px; text-align: center; font-weight: bold; background: #333; min-height: 24px; }
+        #scanner-reader, #role-client-reader { width: 100%; flex: 1; background: #000; }
+        .scan-controls { padding: 20px; background: #333; }
+        .scan-controls input { width: 100%; padding: 15px; font-size: 16px; border-radius: 8px; border: none; margin-bottom: 10px; box-sizing: border-box; }
 
         /* КЛИЕНТ */
         #screen-client { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
-        .client-content { padding: 20px; flex: 1; overflow-y: auto; }
+        .client-content { padding: 20px; flex: 1; overflow-y: auto; padding-bottom: 80px;}
         .client-order-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .client-order-info h3 { margin: 0 0 5px 0; color: var(--primary); font-size: 18px; }
-        .client-order-info p { margin: 0; color: #666; font-size: 14px; }
-        .btn-show { padding: 10px 20px; background: var(--warning); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
+        .client-chat-box { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; gap: 10px; box-sizing: border-box;}
+        .client-chat-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+
         #client-qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
         #client-qr-screen h1 { font-size: 100px; margin: 0; color: var(--primary); }
         .close-qr { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 40px; color: var(--danger); cursor: pointer; }
 
-        /* ЗВЕЗДЫ ДЛЯ ОЦЕНКИ */
+        /* ОЦЕНКА */
         .star-rating { display: flex; gap: 10px; font-size: 40px; cursor: pointer; color: #ccc; justify-content: center; margin: 20px 0;}
         .star-rating .star.active { color: #ffc107; }
         textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: none; box-sizing: border-box; }
@@ -123,53 +90,79 @@
 </head>
 <body>
 
+    <!-- Скрытый аудио-элемент для разблокировки звука и уведомлений -->
+    <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
     <!-- 1. ВЫБОР РОЛИ -->
     <div id="screen-roles">
-        <h1>Симулятор ПВЗ</h1>
-        <div class="role-container">
-            <button class="role-btn" onclick="startRole('employee')">Сотрудник (Оператор)</button>
-            <button class="role-btn" onclick="startRole('scanner')">Сканер приёмки</button>
-            <button class="role-btn" onclick="startRole('client')">Клиент</button>
-            <button class="role-btn" onclick="startRole('client-scanner')">Сканер клиента</button>
-        </div>
+        <h1 style="margin-bottom: 40px; text-align: center;">Симулятор ПВЗ</h1>
+        <button class="role-btn" onclick="startRole('employee')">Сотрудник (Оператор)</button>
+        <button class="role-btn" onclick="startRole('scanner')">Сканер приёмки</button>
+        <button class="role-btn" onclick="startRole('client-scanner')">Сканер клиента</button>
+        <button class="role-btn" onclick="startRole('client')">Клиент</button>
     </div>
 
     <!-- 2. СОТРУДНИК -->
     <div id="screen-employee" class="hidden">
         <div class="emp-sidebar">
-            <h2 style="margin-top:0; text-align:center; margin-bottom: 20px;">ПВЗ Оператор</h2>
+            <h2 style="text-align:center; margin-bottom: 20px;">ПВЗ Оператор</h2>
             <button onclick="exitRole()">Сменить роль</button>
             <button onclick="loadEmpOrders()">Обновить данные</button>
+            <button onclick="openModal('chat-modal')">Сообщения <div class="red-dot" id="chat-red-dot"></div></button>
             <button onclick="openModal('finance-modal')">Финансы</button>
             <button onclick="openModal('reviews-modal')">Оценки</button>
             <button onclick="openModal('reset-modal')" style="margin-top:auto; background: rgba(244,67,54,0.4);">Сбросить игру</button>
         </div>
         <div class="emp-main">
-            
-            <div id="focused-order-panel">
-                <h2>Клиент у стойки: Заказ № <span id="focus-id"></span></h2>
-                <div id="focus-details" style="font-size: 16px; margin-bottom: 15px;"></div>
-                <div class="focus-actions" id="focus-actions">
-                    <!-- Кнопки рендерятся динамически -->
-                </div>
+            <div id="focused-order-panel" style="display:none; background: #e3f2fd; border: 2px solid #2196f3; border-radius: 12px; padding: 25px;">
+                <h2 style="margin-top:0;">Клиент у стойки: Заказ № <span id="focus-id"></span></h2>
+                <div id="focus-details" style="margin-bottom: 15px;"></div>
+                <div id="focus-actions" style="display:flex; gap:15px; flex-wrap:wrap;"></div>
             </div>
 
             <div class="emp-card">
                 <h3>Выдача заказа (вручную)</h3>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="issue-input" placeholder="Номер заказа (например, 1)" style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd; font-size: 16px;" onkeypress="if(event.key==='Enter') issueOrder()">
+                    <input type="text" id="issue-input" placeholder="Номер заказа" style="flex:1; padding:15px; border-radius:8px; border:1px solid #ddd; font-size:18px;" onkeypress="if(event.key==='Enter') issueOrder()">
                     <button class="btn btn-primary" onclick="issueOrder()">Найти</button>
                 </div>
-                <p id="issue-message" style="color: var(--primary); font-weight: bold;"></p>
+                <p id="issue-message" style="font-weight: bold;"></p>
             </div>
 
             <div class="emp-card" style="flex: 1;">
-                <h3>Склад (Принято: <span id="count-accepted">0</span>)</h3>
+                <h3>Склад (Принято: <span id="count-accepted">0</span>) | Выдано: <span id="count-issued">0</span></h3>
                 <table class="emp-table">
-                    <thead><tr><th>Номер</th><th>Товары</th><th>Клиент</th><th>Оплата</th><th>Статус</th><th>Коробка</th><th>Действие</th></tr></thead>
+                    <thead><tr><th>Заказ</th><th>Товары</th><th>Клиент</th><th>Оплата</th><th>Статус</th><th>Коробка</th><th>Действие</th></tr></thead>
                     <tbody id="orders-table-body"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЧАТА -->
+    <div class="modal-overlay" id="chat-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('chat-modal')">×</button>
+            <h2>Чат с клиентами</h2>
+            <div id="chat-messages"></div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="emp-chat-input" placeholder="Ответить клиенту..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd;">
+                <button class="btn btn-primary" onclick="sendChatMessage('employee')">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА КАССЫ (ОПЛАТА) -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-content" style="text-align:center;">
+            <h2>Прием оплаты</h2>
+            <div class="cashier-total">К оплате: <span id="pay-total">0</span> Р</div>
+            <p style="text-align:left;">Введите сумму, которую дал клиент:</p>
+            <input type="number" id="pay-received" class="cashier-input" oninput="calcChange()" placeholder="Например: 5000">
+            <p style="text-align:left;">Введите сумму сдачи, которую вы отдаете:</p>
+            <input type="number" id="pay-change" class="cashier-input" placeholder="Сдача">
+            <p id="pay-error" style="color:var(--danger); font-weight:bold; height:20px;"></p>
+            <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="confirmPayment()">Подтвердить оплату</button>
         </div>
     </div>
 
@@ -177,10 +170,10 @@
     <div class="modal-overlay" id="finance-modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('finance-modal')">×</button>
-            <h2>Финансы пункта выдачи</h2>
-            <div style="font-size: 24px; margin-bottom: 10px;">Доход за смену: <strong id="finance-income" style="color: var(--success);">0 ₽</strong></div>
-            <p style="color: #666; font-size: 14px;">Комиссия пункта составляет 4% от стоимости товаров, но не более 500 ₽ за один заказ.</p>
-            <div class="finance-chart" id="finance-chart"></div>
+            <h2>Финансы смены</h2>
+            <div style="font-size: 24px; margin-bottom: 10px;">Доход: <strong id="finance-income" style="color: var(--success);">0 Р</strong></div>
+            <div style="font-size: 18px; margin-bottom: 10px;">Бонусов получено: <strong id="finance-bonus" style="color: var(--primary);">0</strong> (по 100 Р)</div>
+            <p style="color: #666; font-size: 14px;">За каждые 10 успешных выдач без ошибок начисляется бонус 100 Р. Комиссия пункта: 4% (макс. 500 Р).</p>
         </div>
     </div>
 
@@ -188,13 +181,6 @@
     <div class="modal-overlay" id="reviews-modal">
         <div class="modal-content" style="max-width: 500px;">
             <button class="close-modal" onclick="closeModal('reviews-modal')">×</button>
-            <div class="reviews-header">
-                <div class="reviews-score" id="avg-score">0.0</div>
-                <div>
-                    <div class="stars-container" id="avg-stars">☆☆☆☆☆</div>
-                    <div style="font-size: 12px; color: #777;" id="reviews-count">0 отзывов</div>
-                </div>
-            </div>
             <div id="reviews-list"></div>
         </div>
     </div>
@@ -203,57 +189,61 @@
     <div class="modal-overlay" id="reset-modal">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h2>Сброс игры</h2>
-            <p>Выберите тип сброса:</p>
             <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(false)">Полный сброс (удалить отзывы и финансы)</button>
-            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Сброс заказов (сохранить отзывы)</button>
+            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Только сброс заказов</button>
             <button class="btn" style="width: 100%; background:#eee;" onclick="closeModal('reset-modal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ (ВМЕСТО CONFIRM) -->
+    <div class="modal-overlay" id="custom-confirm-modal">
+        <div class="modal-content" style="text-align: center; max-width: 400px;">
+            <h2 id="confirm-title">Подтверждение</h2>
+            <p id="confirm-text" style="font-size: 20px; margin: 20px 0;"></p>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-success" style="flex:1;" onclick="confirmYes()">Да</button>
+                <button class="btn btn-danger" style="flex:1;" onclick="confirmNo()">Нет</button>
+            </div>
         </div>
     </div>
 
     <!-- 3. СКАНЕР ПРИЕМКИ -->
     <div id="screen-scanner" class="hidden">
-        <div class="app-header">
-            <h2>Сканер приёмки</h2>
-            <button class="btn btn-primary" onclick="exitRole()" style="background:rgba(255,255,255,0.2);">Назад</button>
-        </div>
-        <div id="scan-status" class="status-bar-top">Наведите камеру на QR-код</div>
+        <div class="app-header"><h2>Сканер приёмки</h2><button class="btn btn-primary" onclick="exitRole()">Назад</button></div>
+        <div id="scan-status" class="status-bar-top">Наведите камеру</div>
         <div id="scanner-reader"></div>
         <div class="scan-controls">
-            <input type="text" id="manual-input" placeholder="Ввод вручную" onkeypress="if(event.key==='Enter') manualScan()">
-            <button onclick="manualScan()">Отправить код</button>
+            <input type="text" id="manual-input" placeholder="Ввод вручную">
+            <button class="btn btn-success" style="width:100%;" onclick="manualScan()">Отправить</button>
         </div>
     </div>
 
-    <!-- 4. СКАНЕР КЛИЕНТА (ОТДЕЛЬНАЯ РОЛЬ) -->
+    <!-- 4. СКАНЕР КЛИЕНТА (РОЛЬ) -->
     <div id="screen-client-scanner" class="hidden">
-        <div class="app-header">
-            <h2>Сканер клиента</h2>
-            <button class="btn btn-primary" onclick="exitRole()" style="background:rgba(255,255,255,0.2);">Назад</button>
-        </div>
+        <div class="app-header"><h2>Сканер клиента</h2><button class="btn btn-primary" onclick="exitRole()">Назад</button></div>
         <div id="role-client-status" class="status-bar-top">Наведите камеру на QR-код клиента</div>
         <div id="role-client-reader"></div>
     </div>
 
     <!-- 5. КЛИЕНТ -->
     <div id="screen-client" class="hidden">
-        <div class="app-header">
-            <h2>Доступные заказы</h2>
-            <button class="btn btn-primary" onclick="exitRole()" style="background:rgba(255,255,255,0.2);">Выход</button>
-        </div>
+        <div class="app-header"><h2>Мои заказы</h2><button class="btn btn-primary" onclick="exitRole()">Выход</button></div>
         <div class="client-content" id="client-orders-list"></div>
+        
+        <!-- Чат для клиента -->
+        <div class="client-chat-box">
+            <input type="text" id="client-chat-input" placeholder="Написать оператору..." onkeypress="if(event.key==='Enter') sendChatMessage('client')">
+            <button class="btn btn-primary" onclick="sendChatMessage('client')">Отправить</button>
+        </div>
 
-        <!-- Показ QR -->
         <div id="client-qr-screen" class="hidden">
             <button class="close-qr" onclick="closeClientQR()">×</button>
             <h1 id="client-big-id">1</h1>
-            <p>Покажите этот номер оператору</p>
         </div>
 
-        <!-- Оценка заказа -->
         <div class="modal-overlay" id="rating-modal">
             <div class="modal-content" style="text-align: center; max-width: 400px;">
-                <h2>Оцените работу ПВЗ</h2>
-                <p id="rating-order-id"></p>
+                <h2>Оцените ПВЗ</h2>
                 <div class="star-rating" id="star-rating">
                     <span class="star" onclick="setRating(1)">★</span>
                     <span class="star" onclick="setRating(2)">★</span>
@@ -261,8 +251,8 @@
                     <span class="star" onclick="setRating(4)">★</span>
                     <span class="star" onclick="setRating(5)">★</span>
                 </div>
-                <textarea id="rating-comment" placeholder="Что понравилось, а что нет?"></textarea>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="submitRating()">Отправить отзыв</button>
+                <textarea id="rating-comment" placeholder="Комментарий..."></textarea>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="submitRating()">Отправить</button>
             </div>
         </div>
     </div>
@@ -277,9 +267,23 @@
         let empOrders = [];
         let clientOrders = [];
         let focusedOrderId = null;
-        
-        let currentRatingOrder = null;
         let selectedStars = 0;
+        let currentRatingOrder = null;
+        
+        // Переменные для кассы
+        let currentPayTotal = 0;
+        
+        // Переменные для подтверждения
+        let confirmCallback = null;
+
+        // Починка голоса (разблокировка при первом клике)
+        document.addEventListener('click', function unlockAudio() {
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(u);
+            }
+            document.removeEventListener('click', unlockAudio);
+        }, { once: true });
 
         function startRole(role) {
             document.getElementById('screen-roles').classList.add('hidden');
@@ -316,13 +320,59 @@
         function empSpeak(text) {
             if ('speechSynthesis' in window) {
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = 'ru-RU'; u.rate = 0.9; window.speechSynthesis.speak(u);
+                u.lang = 'ru-RU'; u.rate = 0.9; 
+                window.speechSynthesis.speak(u);
             }
+        }
+
+        // --- УВЕДОМЛЕНИЯ ---
+        function showToast(title, text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div>
+                    <strong style="display:block; margin-bottom:5px;">${title}</strong>
+                    <span style="font-size:14px; color:#555;">${text}</span>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            // Звук
+            const audio = document.getElementById('notif-sound');
+            if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // --- КАСТОМНЫЙ CONFIRM ---
+        function showConfirm(text, callback) {
+            document.getElementById('confirm-text').innerText = text;
+            confirmCallback = callback;
+            document.getElementById('custom-confirm-modal').style.display = 'flex';
+        }
+        function confirmYes() {
+            document.getElementById('custom-confirm-modal').style.display = 'none';
+            if (confirmCallback) confirmCallback();
+        }
+        function confirmNo() {
+            document.getElementById('custom-confirm-modal').style.display = 'none';
+            confirmCallback = null;
         }
 
         function openModal(id) { 
             if(id === 'finance-modal') loadFinance();
             if(id === 'reviews-modal') loadReviews();
+            if(id === 'chat-modal') {
+                loadChat();
+                document.getElementById('chat-red-dot').style.display = 'none';
+            }
             document.getElementById(id).style.display = 'flex'; 
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -332,6 +382,8 @@
         // ==========================================
         async function initEmployee() {
             await loadEmpOrders();
+            
+            // Realtime заказы
             supabaseClient.channel('emp-orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
                 const idx = empOrders.findIndex(o => o.id === payload.new.id);
                 if (idx !== -1) {
@@ -342,31 +394,37 @@
                 }
             }).subscribe();
 
+            // Realtime сканер
             supabaseClient.channel('emp-scans').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scans' }, payload => {
                 processEmpScan(payload.new.order_id);
+            }).subscribe();
+
+            // Realtime чат
+            supabaseClient.channel('emp-chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                if(payload.new.sender === 'client') {
+                    document.getElementById('chat-red-dot').style.display = 'block';
+                    showToast('Новое сообщение от клиента', payload.new.text);
+                    if(document.getElementById('chat-modal').style.display === 'flex') loadChat();
+                }
             }).subscribe();
         }
 
         async function loadEmpOrders() {
-            const { data, error } = await supabaseClient.from('orders').select(`*, order_items (*)`).order('id');
-            if (error) return alert("Ошибка загрузки: " + error.message);
-            empOrders = data;
+            const { data } = await supabaseClient.from('orders').select(`*, order_items (*)`).order('id');
+            empOrders = data || [];
             renderEmpTable();
             document.getElementById('count-accepted').textContent = empOrders.filter(o => o.status === 'accepted' || o.status === 'placed').length;
+            document.getElementById('count-issued').textContent = empOrders.filter(o => o.status === 'issued').length;
         }
 
         function renderEmpTable() {
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-            
-            // СОРТИРОВКА ОТ МЕНЬШЕГО К БОЛЬШЕМУ (по ID)
             const sorted = [...empOrders].sort((a, b) => parseInt(a.id) - parseInt(b.id));
             
             sorted.forEach(o => {
                 const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
                 const payStatus = o.is_paid ? 'Оплачен' : 'При получении';
-                
-                // Кнопки действий прямо в таблице
                 let actions = '';
                 if (o.status === 'accepted' || o.status === 'placed') {
                     actions = `
@@ -374,50 +432,40 @@
                         <button class="btn btn-danger btn-small" onclick="tableAction('${o.id}', 'returned')">Возврат</button>
                     `;
                 }
-
                 tbody.innerHTML += `<tr>
                     <td><strong>${o.id}</strong></td>
                     <td>${items}</td>
                     <td>${o.customer_name}</td>
-                    <td style="font-size:14px;">${payStatus}</td>
-                    <td><span class="st-${o.status}">${translateStatus(o.status)}</span></td>
+                    <td>${payStatus}</td>
+                    <td>${translateStatus(o.status)}</td>
                     <td>${o.box_number ? '№ '+o.box_number : '—'}</td>
                     <td>${actions}</td>
                 </tr>`;
             });
         }
 
-        // Действия из таблицы
-        async function tableAction(orderId, action) {
+        function tableAction(orderId, action) {
             const order = empOrders.find(o => o.id === orderId);
             if (action === 'issued' && !order.is_paid) {
-                alert("Клиент еще не оплатил заказ! Используйте панель сканирования клиента для оплаты.");
-                return;
+                alert("Требуется оплата!"); return;
             }
-            if (confirm(`Заказ №${orderId}: подтвердить действие "${translateStatus(action)}"?`)) {
+            showConfirm(`Подтвердить: ${translateStatus(action)} заказ №${orderId}?`, async () => {
                 const { error } = await supabaseClient.from('orders').update({ status: action }).eq('id', orderId);
-                if (!error) {
-                    if (focusedOrderId === orderId) {
-                        document.getElementById('focused-order-panel').style.display = 'none';
-                        focusedOrderId = null;
-                    }
-                    loadEmpOrders();
-                }
-            }
+                if (!error) loadEmpOrders();
+            });
         }
 
         async function processEmpScan(orderId) {
             const order = empOrders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
-            const isDamaged = Math.random() < 0.1;
-            
-            if (isDamaged) {
-                const { error } = await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
-                if (!error) {
-                    empSpeak(`Внимание! Заказ ${numberToRussian(parseInt(orderId))} поврежден. Уберите в зону возвратов.`);
+            // 10% шанс повреждения
+            if (Math.random() < 0.1) {
+                showConfirm(`Коробка заказа №${orderId} ПОВРЕЖДЕНА. Отправить в возврат?`, async () => {
+                    await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
+                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден. Отправлен в возврат.`);
                     loadEmpOrders();
-                }
+                });
                 return;
             }
 
@@ -428,10 +476,7 @@
 
             const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
             if (!error) {
-                // ОЗВУЧКА НА РУССКОМ
-                const orderWord = numberToRussian(parseInt(orderId));
-                const boxWord = numberToRussian(free);
-                empSpeak(`Заказ номер ${orderWord}. Коробка номер ${boxWord}`);
+                empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}`);
                 loadEmpOrders();
             }
         }
@@ -443,53 +488,84 @@
             if (!order || order.status === 'issued' || order.status === 'returned') {
                 panel.style.display = 'none'; focusedOrderId = null; return;
             }
-
             panel.style.display = 'block';
             document.getElementById('focus-id').innerText = order.id;
-            const items = order.order_items ? order.order_items.map(i => i.product_name).join(', ') : '—';
-            const boxInfo = order.box_number ? `<strong>Коробка: №${order.box_number}</strong>` : `<span style="color:red">Заказ еще не принят!</span>`;
-            
+            const items = order.order_items ? order.order_items.map(i => `${i.product_name} (${i.price}Р)`).join(', ') : '—';
             document.getElementById('focus-details').innerHTML = `
                 <p>Клиент: <strong>${order.customer_name}</strong></p>
                 <p>Товары: ${items}</p>
-                <p>${boxInfo}</p>
-                <p>Оплата: <strong>${order.is_paid ? 'Уже оплачен' : 'При получении (Требуется оплата)'}</strong></p>
+                <p>Коробка: <strong>${order.box_number ? '№ '+order.box_number : 'Не назначена'}</strong></p>
+                <p>Оплата: <strong>${order.is_paid ? 'Оплачен' : 'При получении'}</strong></p>
             `;
 
             const actions = document.getElementById('focus-actions');
             actions.innerHTML = '';
-
             if (!order.is_paid) {
-                actions.innerHTML += `<button class="btn btn-pay" onclick="payFocusedOrder()">ПРИНЯТЬ ОПЛАТУ</button>`;
+                actions.innerHTML = `<button class="btn btn-warning" style="width:100%;" onclick="openPaymentModal()">ПРИНЯТЬ ОПЛАТУ</button>`;
             } else {
-                actions.innerHTML += `
-                    <button class="btn btn-issue" onclick="resolveFocusedOrder('issued')">ВЫДАН</button>
-                    <button class="btn btn-return" onclick="resolveFocusedOrder('returned')">ВОЗВРАТ</button>
+                actions.innerHTML = `
+                    <button class="btn btn-success" style="flex:1;" onclick="resolveFocusedOrder('issued')">ВЫДАН</button>
+                    <button class="btn btn-danger" style="flex:1;" onclick="resolveFocusedOrder('returned')">ВОЗВРАТ</button>
                 `;
             }
         }
 
-        async function payFocusedOrder() {
-            const { error } = await supabaseClient.from('orders').update({ is_paid: true }).eq('id', focusedOrderId);
-            if (!error) {
-                loadEmpOrders();
-                setTimeout(renderFocusedOrder, 300); 
+        // --- КАССА ---
+        function openPaymentModal() {
+            const order = empOrders.find(o => o.id === focusedOrderId);
+            currentPayTotal = order.order_items.reduce((sum, item) => sum + Number(item.price), 0);
+            document.getElementById('pay-total').innerText = currentPayTotal;
+            document.getElementById('pay-received').value = '';
+            document.getElementById('pay-change').value = '';
+            document.getElementById('pay-error').innerText = '';
+            document.getElementById('payment-modal').style.display = 'flex';
+        }
+
+        function calcChange() {
+            const received = Number(document.getElementById('pay-received').value);
+            if (received > 0) {
+                const correctChange = received - currentPayTotal;
+                // Можно автоматически подставить, но мы заставим ввести вручную для игры
+                // document.getElementById('pay-change').value = correctChange;
             }
         }
 
-        async function resolveFocusedOrder(newStatus) {
-            const order = empOrders.find(o => o.id === focusedOrderId);
-            if (!order.is_paid && newStatus === 'issued') {
-                alert("Клиент еще не оплатил заказ!"); return;
+        async function confirmPayment() {
+            const received = Number(document.getElementById('pay-received').value);
+            const givenChange = Number(document.getElementById('pay-change').value);
+            const correctChange = received - currentPayTotal;
+
+            if (received < currentPayTotal) {
+                document.getElementById('pay-error').innerText = 'Недостаточно средств!';
+                return;
             }
-            if (confirm(`Подтвердить действие для заказа №${focusedOrderId}?`)) {
+
+            if (givenChange !== correctChange) {
+                document.getElementById('pay-error').innerText = `Неверная сдача! Правильно: ${correctChange} Р`;
+                // Штраф рейтингу (симуляция)
+                showToast('Ошибка кассира', 'Вы выдали неверную сдачу. Рейтинг снижен.');
+                return;
+            }
+
+            // Успех
+            await supabaseClient.from('orders').update({ is_paid: true }).eq('id', focusedOrderId);
+            closeModal('payment-modal');
+            showToast('Оплата принята', `Получено ${received} Р. Сдача: ${givenChange} Р`);
+            loadEmpOrders();
+            setTimeout(renderFocusedOrder, 300);
+        }
+
+        function resolveFocusedOrder(newStatus) {
+            const order = empOrders.find(o => o.id === focusedOrderId);
+            if (!order.is_paid && newStatus === 'issued') return alert("Клиент еще не оплатил заказ!");
+            showConfirm(`Подтвердить: ${translateStatus(newStatus)} заказ №${focusedOrderId}?`, async () => {
                 const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq('id', focusedOrderId);
                 if (!error) { 
                     document.getElementById('focused-order-panel').style.display = 'none'; 
                     focusedOrderId = null; 
                     loadEmpOrders(); 
                 }
-            }
+            });
         }
 
         async function issueOrder() {
@@ -499,43 +575,25 @@
             if (!orderId) return;
 
             const order = empOrders.find(o => o.id === orderId);
-            if (!order) { msgEl.style.color = 'var(--danger)'; msgEl.textContent = 'Не найден.'; return; }
-            if (order.status === 'issued') { msgEl.style.color = 'var(--warning)'; msgEl.textContent = 'Уже выдан.'; return; }
-            if (order.status !== 'placed' && order.status !== 'accepted') { 
-                msgEl.style.color = 'var(--danger)'; msgEl.textContent = `Не принят (${translateStatus(order.status)}).`; return; 
-            }
-            if (!order.is_paid) {
-                msgEl.style.color = 'var(--warning)'; msgEl.textContent = 'Требуется оплата! Используйте сканер клиента.'; return;
-            }
+            if (!order) { msgEl.style.color = 'red'; msgEl.textContent = 'Не найден.'; return; }
+            if (order.status === 'issued') { msgEl.style.color = 'orange'; msgEl.textContent = 'Уже выдан.'; return; }
+            if (order.status !== 'placed' && order.status !== 'accepted') { msgEl.style.color = 'red'; msgEl.textContent = `Не принят.`; return; }
+            if (!order.is_paid) { msgEl.style.color = 'orange'; msgEl.textContent = 'Требуется оплата!'; return; }
 
-            const orderWord = numberToRussian(parseInt(orderId));
-            const boxWord = numberToRussian(order.box_number);
-            empSpeak(`Заказ номер ${orderWord}. Коробка номер ${boxWord}`);
-
-            if (confirm(`Найдена коробка №${order.box_number} для ${order.customer_name}?`)) {
+            empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}. Коробка ${order.box_number}`);
+            showConfirm(`Найдена коробка №${order.box_number}. Выдать заказ?`, async () => {
                 const { error } = await supabaseClient.from('orders').update({ status: 'issued' }).eq('id', orderId);
-                if (!error) {
-                    msgEl.style.color = 'var(--success)'; msgEl.textContent = `Заказ ${orderId} выдан!`;
-                    input.value = ''; loadEmpOrders();
-                }
-            }
+                if (!error) { msgEl.style.color = 'green'; msgEl.textContent = `Выдан!`; input.value = ''; loadEmpOrders(); }
+            });
         }
 
-        // --- РОЛЬ: СКАНЕР КЛИЕНТА (ПЕРЕХОДИТ В ИНТЕРФЕЙС СОТРУДНИКА) ---
+        // --- РОЛЬ: СКАНЕР КЛИЕНТА ---
         function initClientScannerRole() {
             roleClientQrCode = new Html5Qrcode("role-client-reader");
-            let isScanning = false;
-
             roleClientQrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-                if (isScanning) return;
-                isScanning = true;
                 const cleanId = text.trim();
-                
-                // Переключаемся на экран сотрудника и загружаем данные
                 document.getElementById('screen-client-scanner').classList.add('hidden');
                 document.getElementById('screen-employee').classList.remove('hidden');
-                
-                // Запускаем сотрудника и ждем загрузки
                 initEmployee().then(() => {
                     const order = empOrders.find(o => o.id === cleanId);
                     if (order && (order.status === 'accepted' || order.status === 'placed')) {
@@ -543,89 +601,79 @@
                         renderFocusedOrder();
                         window.scrollTo(0, 0);
                     } else {
-                        alert("Заказ не найден или еще не принят на склад!");
+                        alert("Заказ не найден!");
                     }
                 });
-            }).catch(err => { 
-                document.getElementById('role-client-status').innerText = "Ошибка камеры"; 
             });
         }
 
-        // --- ФИНАНСЫ ---
+        // --- ЧАТ ---
+        async function loadChat() {
+            const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+            if(data) {
+                data.forEach(m => {
+                    container.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        async function sendChatMessage(sender) {
+            const inputId = sender === 'employee' ? 'emp-chat-input' : 'client-chat-input';
+            const input = document.getElementById(inputId);
+            const text = input.value.trim();
+            if(!text) return;
+            await supabaseClient.from('messages').insert([{ sender, text }]);
+            input.value = '';
+            if(sender === 'employee') loadChat();
+        }
+
+        // --- ФИНАНСЫ И БОНУСЫ ---
         async function loadFinance() {
             const { data } = await supabaseClient.from('orders').select(`*, order_items (*)`).eq('status', 'issued');
             let totalIncome = 0;
             if (data) {
                 data.forEach(order => {
-                    if (order.order_items) {
-                        const orderSum = order.order_items.reduce((sum, item) => sum + Number(item.price), 0);
-                        let commission = orderSum * 0.04;
-                        if (commission > 500) commission = 500;
-                        totalIncome += commission;
-                    }
+                    const sum = order.order_items.reduce((s, i) => s + Number(i.price), 0);
+                    totalIncome += Math.min(sum * 0.04, 500);
                 });
             }
-            document.getElementById('finance-income').innerText = totalIncome.toFixed(2) + ' Р';
+            // Бонусы (каждые 10 выдач = 100 руб)
+            const issuedCount = data ? data.length : 0;
+            const bonuses = Math.floor(issuedCount / 10) * 100;
             
-            const chart = document.getElementById('finance-chart');
-            chart.innerHTML = '';
-            const mockData = [Math.random()*1000, Math.random()*2000, totalIncome];
-            const max = Math.max(...mockData, 1);
-            mockData.forEach((val, i) => {
-                const height = (val / max) * 100;
-                chart.innerHTML += `<div class="chart-bar" style="height: ${height}%;"><div class="chart-label">Смена ${i+1}</div></div>`;
-            });
+            document.getElementById('finance-income').innerText = (totalIncome + bonuses).toFixed(2) + ' Р';
+            document.getElementById('finance-bonus').innerText = bonuses + ' Р';
         }
 
         // --- ОТЗЫВЫ ---
         async function loadReviews() {
             const { data } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
             const list = document.getElementById('reviews-list');
-            list.innerHTML = '';
+            if (!data || data.length === 0) { list.innerHTML = '<p>Нет отзывов</p>'; return; }
             
-            if (!data || data.length === 0) {
-                document.getElementById('avg-score').innerText = '0.0';
-                document.getElementById('avg-stars').innerText = '☆☆☆☆☆';
-                document.getElementById('reviews-count').innerText = '0 отзывов';
-                list.innerHTML = '<p style="text-align:center; color:#999;">Пока нет отзывов</p>';
-                return;
-            }
-
-            let sum = 0;
+            let html = `<div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <div style="font-size:40px; font-weight:bold;">${(data.reduce((s,r)=>s+r.rating,0)/data.length).toFixed(1)}</div>
+                <div><div style="color:#ffc107; font-size:24px;">${'★'.repeat(Math.round(data.reduce((s,r)=>s+r.rating,0)/data.length))}</div><div style="font-size:12px;">${data.length} отзывов</div></div>
+            </div>`;
+            
             data.forEach(rev => {
-                sum += rev.rating;
-                let stars = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
-                let date = new Date(rev.created_at).toLocaleDateString('ru-RU');
-                
-                list.innerHTML += `
-                    <div class="review-item">
-                        <div class="review-avatar">К</div>
-                        <div class="review-content">
-                            <div class="review-author">Клиент</div>
-                            <div class="review-stars">${stars}</div>
-                            <div class="review-text">${rev.comment || 'Без комментария'}</div>
-                            <div style="font-size:10px; color:#aaa; margin-top:5px;">${date}</div>
-                        </div>
-                    </div>
-                `;
+                html += `<div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <div style="color:#ffc107;">${'★'.repeat(rev.rating)}${'☆'.repeat(5-rev.rating)}</div>
+                    <div style="font-size:14px; margin-top:5px;">${rev.comment || 'Без комментария'}</div>
+                </div>`;
             });
-
-            const avg = (sum / data.length).toFixed(1);
-            document.getElementById('avg-score').innerText = avg;
-            document.getElementById('reviews-count').innerText = data.length + ' отзывов';
-            
-            const fullStars = Math.round(avg);
-            document.getElementById('avg-stars').innerText = '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);
+            list.innerHTML = html;
         }
 
         async function resetGame(keepStats) {
-            if (!confirm('Вы уверены? Это действие необратимо.')) return;
-            await supabaseClient.from('orders').update({ status: 'in_transit', box_number: null, is_paid: true, is_damaged: false }).neq('id', '0');
-            if (!keepStats) {
-                await supabaseClient.from('reviews').delete().neq('id', 0);
-            }
-            alert("Игра сброшена!");
-            location.reload();
+            showConfirm('Вы уверены? Это действие необратимо.', async () => {
+                await supabaseClient.from('orders').update({ status: 'in_transit', box_number: null, is_paid: true, is_damaged: false }).neq('id', '0');
+                if (!keepStats) await supabaseClient.from('reviews').delete().neq('id', 0);
+                alert("Игра сброшена!"); location.reload();
+            });
         }
 
         // ==========================================
@@ -640,7 +688,7 @@
                         if (isScanning) return;
                         isScanning = true;
                         if (navigator.vibrate) navigator.vibrate(200);
-                        updateScanStatus("Отправка: " + text, "");
+                        updateScanStatus("Отправка...", "");
                         sendScan(text);
                         setTimeout(() => { isScanning = false; updateScanStatus("Наведите камеру", ""); }, 2500);
                     }).catch(err => updateScanStatus("Ошибка камеры", "scan-error"));
@@ -654,12 +702,10 @@
         }
 
         async function sendScan(orderId) {
-            const cleanId = orderId.trim(); 
-            const { error } = await supabaseClient.from('scans').insert([{ order_id: cleanId, scanner_id: 'mobile' }]);
-            if (!error) updateScanStatus("УСПЕШНО: Заказ " + cleanId, "scan-success");
-            else updateScanStatus("Ошибка: Заказа " + cleanId + " нет в базе!", "scan-error");
+            const { error } = await supabaseClient.from('scans').insert([{ order_id: orderId.trim(), scanner_id: 'mobile' }]);
+            if (!error) updateScanStatus("УСПЕШНО: " + orderId, "scan-success");
+            else updateScanStatus("Ошибка: Заказа " + orderId + " нет в базе!", "scan-error");
         }
-
         function manualScan() {
             const input = document.getElementById('manual-input');
             if (input.value.trim()) { sendScan(input.value); input.value = ''; }
@@ -674,10 +720,8 @@
                 fetchClientOrders(); 
                 const qrScreen = document.getElementById('client-qr-screen');
                 if (!qrScreen.classList.contains('hidden') && payload.new.status === 'issued') {
-                    const currentId = document.getElementById('client-big-id').innerText;
-                    if (currentId === payload.new.id) {
-                        closeClientQR();
-                        openRatingModal(payload.new.id);
+                    if (document.getElementById('client-big-id').innerText === payload.new.id) {
+                        closeClientQR(); openRatingModal(payload.new.id);
                     }
                 }
             }).subscribe();
@@ -693,24 +737,15 @@
             const list = document.getElementById('client-orders-list');
             list.innerHTML = '';
             const readyOrders = clientOrders.filter(o => o.status === 'accepted' || o.status === 'placed');
-
             if (readyOrders.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#999; margin-top:50px;">Нет заказов, готовых к выдаче.</p>';
-                return;
+                list.innerHTML = '<p style="text-align:center;">Нет заказов к выдаче.</p>'; return;
             }
-
             readyOrders.forEach(order => {
-                const items = order.order_items ? order.order_items.map(i => i.product_name).join(', ') : 'Товары';
-                const card = document.createElement('div');
-                card.className = 'client-order-card';
-                card.innerHTML = `
-                    <div class="client-order-info">
-                        <h3>Заказ ${order.id}</h3>
-                        <p>${items}</p>
-                    </div>
-                    <button class="btn-show" onclick="showClientQR('${order.id}')">Показать</button>
-                `;
-                list.appendChild(card);
+                const items = order.order_items.map(i => i.product_name).join(', ');
+                list.innerHTML += `<div class="client-order-card">
+                    <div><h3 style="margin:0 0 5px 0;">Заказ ${order.id}</h3><p style="margin:0;">${items}</p></div>
+                    <button class="btn btn-warning" onclick="showClientQR('${order.id}')">Показать</button>
+                </div>`;
             });
         }
 
@@ -721,36 +756,22 @@
         function closeClientQR() { document.getElementById('client-qr-screen').classList.add('hidden'); }
 
         function openRatingModal(orderId) {
-            currentRatingOrder = orderId;
-            selectedStars = 0;
-            document.getElementById('rating-order-id').innerText = "Заказ №" + orderId;
+            currentRatingOrder = orderId; selectedStars = 0; updateStarsUI();
             document.getElementById('rating-comment').value = '';
-            updateStarsUI();
-            openModal('rating-modal');
+            document.getElementById('rating-modal').style.display = 'flex';
         }
-
         function setRating(n) { selectedStars = n; updateStarsUI(); }
-
         function updateStarsUI() {
-            const stars = document.querySelectorAll('#star-rating .star');
-            stars.forEach((star, index) => {
-                if (index < selectedStars) star.classList.add('active');
-                else star.classList.remove('active');
+            document.querySelectorAll('#star-rating .star').forEach((star, i) => {
+                if (i < selectedStars) star.classList.add('active'); else star.classList.remove('active');
             });
         }
-
         async function submitRating() {
             if (selectedStars === 0) return alert("Поставьте оценку!");
             const comment = document.getElementById('rating-comment').value.trim();
-            const { error } = await supabaseClient.from('reviews').insert([{ 
-                order_id: currentRatingOrder, rating: selectedStars, comment: comment 
-            }]);
-            if (!error) {
-                closeModal('rating-modal');
-                alert("Спасибо за ваш отзыв!");
-            } else {
-                alert("Ошибка отправки отзыва: " + error.message);
-            }
+            await supabaseClient.from('reviews').insert([{ order_id: currentRatingOrder, rating: selectedStars, comment: comment }]);
+            document.getElementById('rating-modal').style.display = 'none';
+            alert("Спасибо за отзыв!");
         }
     </script>
 </body>
