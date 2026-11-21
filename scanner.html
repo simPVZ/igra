@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Сканер ПВЗ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Библиотека для работы с камерой -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #222; color: white; display: flex; flex-direction: column; height: 100vh; }
+        .header { padding: 15px; background: #4a148c; text-align: center; }
+        .header h1 { margin: 0; font-size: 20px; }
+        #reader { width: 100%; flex: 1; background: #000; }
+        .controls { padding: 20px; background: #333; display: flex; flex-direction: column; gap: 10px; }
+        input { padding: 15px; font-size: 16px; border-radius: 8px; border: none; text-align: center; }
+        button { padding: 15px; font-size: 18px; border-radius: 8px; border: none; background: #4caf50; color: white; font-weight: bold; }
+        #status { text-align: center; padding: 10px; font-weight: bold; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Сканер приёмки</h1>
+    </div>
+    
+    <div id="reader"></div>
+    
+    <div class="controls">
+        <div id="status">Наведите камеру на QR-код</div>
+        <input type="text" id="manual-input" placeholder="Или введите номер вручную" onkeypress="if(event.key==='Enter') handleManualInput()">
+        <button onclick="handleManualInput()">Отправить вручную</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gfqcrsznivcqlqviexit.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_xfLiWRP0CUw8RVBOzjLwew_IvfkWLmg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isScanning = false;
+
+        // Инициализация сканера
+        const html5QrCode = new Html5Qrcode("reader");
+        
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length) {
+                // Запускаем камеру (предпочитаем заднюю)
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    onScanError
+                ).catch(err => {
+                    document.getElementById('status').innerText = "Ошибка камеры: " + err;
+                });
+            }
+        }).catch(err => {
+            document.getElementById('status').innerText = "Нет доступа к камере";
+        });
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isScanning) return;
+            isScanning = true;
+            
+            // Вибрируем и показываем статус
+            if (navigator.vibrate) navigator.vibrate(200);
+            document.getElementById('status').innerText = "Отправка: " + decodedText;
+            document.getElementById('status').className = "";
+            
+            sendScanToDB(decodedText);
+        }
+
+        function onScanError(errorMessage) {
+            // Игнорируем ошибки поиска (когда просто нет кода в кадре)
+        }
+
+        async function sendScanToDB(orderId) {
+            const { error } = await supabaseClient
+                .from('scans')
+                .insert([{ order_id: orderId, scanner_id: 'mobile_scanner' }]);
+
+            if (!error) {
+                document.getElementById('status').innerText = "УСПЕШНО: " + orderId;
+                document.getElementById('status').className = "success";
+            } else {
+                document.getElementById('status').innerText = "Ошибка БД: " + error.message;
+                document.getElementById('status').className = "error";
+            }
+
+            // Блокируем сканирование на 2 секунды, чтобы не спамить
+            setTimeout(() => {
+                isScanning = false;
+                document.getElementById('status').innerText = "Наведите камеру на QR-код";
+                document.getElementById('status').className = "";
+            }, 2000);
+        }
+
+        function handleManualInput() {
+            const input = document.getElementById('manual-input');
+            const val = input.value.trim().toUpperCase();
+            if (val) {
+                sendScanToDB(val);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
