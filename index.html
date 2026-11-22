@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -41,13 +40,14 @@
         .toast.fade-out { animation: fadeOut 0.5s forwards; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast-icon svg { width: 30px; height: 30px; stroke: var(--primary); }
 
         /* СОТРУДНИК */
         #screen-employee { display: flex; flex-direction: row; height: 100vh; font-size: 110%; }
         .emp-sidebar { width: 280px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
-        .emp-sidebar button { background: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 12px; width: 100%; font-size: 16px; transition: 0.2s; position: relative; }
+        .emp-sidebar button { background: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 12px; width: 100%; font-size: 16px; transition: 0.2s; position: relative; text-align: left; display: flex; align-items: center; gap: 10px; }
         .emp-sidebar button:hover { background: rgba(255, 255, 255, 0.3); }
-        .red-dot { position: absolute; top: 10px; right: 15px; width: 12px; height: 12px; background: var(--danger); border-radius: 50%; display: none; }
+        .red-dot { position: absolute; top: 15px; right: 15px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; display: none; }
         
         .emp-main { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .emp-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -62,15 +62,29 @@
         .st-issued { color: var(--success); background: #e8f5e9; padding: 4px 8px; border-radius: 4px; }
         .st-returned { color: var(--danger); font-weight: bold; background: #ffebee; padding: 4px 8px; border-radius: 4px; }
 
-        /* ЧАТ */
-        #chat-messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 8px; max-width: 80%; font-size: 15px; }
+        /* МЕССЕНДЖЕР (ОБЩИЙ) */
+        .messenger-container { display: flex; flex-direction: row; height: 60vh; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #f9f9f9; }
+        .chat-sidebar { width: 200px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+        .chat-tab { padding: 15px; cursor: pointer; border-bottom: 1px solid #eee; font-weight: bold; color: #555; transition: 0.2s; }
+        .chat-tab:hover { background: #f0f0f0; }
+        .chat-tab.active { background: var(--secondary); color: var(--primary); border-left: 4px solid var(--primary); }
+        
+        .chat-area { flex: 1; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 8px; max-width: 80%; font-size: 15px; line-height: 1.4; }
         .msg.client { background: #e3f2fd; align-self: flex-start; }
         .msg.employee { background: #e8f5e9; align-self: flex-end; }
+        .msg.manager { background: #ffebee; align-self: flex-start; border: 1px solid #ffcdd2; }
+        .msg.admin { background: #fff3e0; align-self: flex-start; border: 1px solid #ffe0b2; }
+        
+        .chat-input-area { padding: 10px; background: white; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
 
-        /* КАССА */
-        .cashier-total { font-size: 24px; font-weight: bold; margin: 15px 0; color: var(--primary); }
-        .cashier-input { width: 100%; padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
+        /* КЛИЕНТСКИЙ МЕССЕНДЖЕР */
+        #client-chat-modal .modal-content { padding: 0; height: 80vh; display: flex; flex-direction: column; overflow: hidden; max-width: 600px; border-radius: 16px; }
+        .client-chat-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; }
+        .client-chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+        .client-chat-input { padding: 15px; background: #f0f0f0; display: flex; gap: 10px; }
 
         /* ГРАФИК */
         .finance-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; overflow-x: auto; }
@@ -89,9 +103,7 @@
         #screen-client { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
         .client-content { padding: 20px; flex: 1; overflow-y: auto; padding-bottom: 80px;}
         .client-order-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .client-chat-box { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; gap: 10px; box-sizing: border-box;}
-        .client-chat-box input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-
+        
         #client-qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
         #client-qr-screen h1 { font-size: 100px; margin: 0; color: var(--primary); }
         .close-qr { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 40px; color: var(--danger); cursor: pointer; }
@@ -100,6 +112,10 @@
         .star-rating { display: flex; gap: 10px; font-size: 40px; cursor: pointer; color: #ccc; justify-content: center; margin: 20px 0;}
         .star-rating .star.active { color: #ffc107; }
         textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: none; box-sizing: border-box; }
+        
+        /* КНОПКА МЕССЕНДЖЕРА КЛИЕНТА */
+        .floating-chat-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 900; }
+        .floating-chat-btn svg { width: 30px; height: 30px; stroke: white; }
     </style>
 </head>
 <body>
@@ -120,7 +136,11 @@
             <div style="text-align:center; font-size:14px; margin-bottom:20px; opacity:0.8;">Уровень: <span id="emp-level">1</span> (XP: <span id="emp-xp">0</span>)</div>
             <button onclick="exitRole()">Сменить роль</button>
             <button onclick="loadEmpOrders()">Обновить данные</button>
-            <button onclick="openModal('chat-modal')">Сообщения <div class="red-dot" id="chat-red-dot"></div></button>
+            <button onclick="openMessenger()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Мессенджер
+                <div class="red-dot" id="chat-red-dot"></div>
+            </button>
             <button onclick="openModal('finance-modal')">Финансы</button>
             <button onclick="openModal('reviews-modal')">Оценки</button>
             <button onclick="endShift()" style="background: rgba(255, 152, 0, 0.4);">Закончить смену</button>
@@ -152,25 +172,49 @@
         </div>
     </div>
 
-    <!-- МОДАЛКИ СОТРУДНИКА -->
-    <div class="modal-overlay" id="chat-modal">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeModal('chat-modal')">×</button>
-            <h2>Чат с клиентами</h2>
-            <div id="chat-messages"></div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="emp-chat-input" placeholder="Ответить..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd;">
-                <button class="btn btn-primary" onclick="sendChatMessage('employee')">Отправить</button>
+    <!-- МЕССЕНДЖЕР СОТРУДНИКА -->
+    <div class="modal-overlay" id="messenger-modal">
+        <div class="modal-content" style="max-width: 700px; height: 70vh; padding: 0; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--primary); color: white;">
+                <h2 style="margin:0; font-size: 20px;">Мессенджер</h2>
+                <button class="close-modal" style="color: white; position: static;" onclick="closeModal('messenger-modal')">×</button>
+            </div>
+            <div class="messenger-container">
+                <div class="chat-sidebar">
+                    <div class="chat-tab active" id="tab-client" onclick="switchChat('client')">Клиенты</div>
+                    <div class="chat-tab" id="tab-manager" onclick="switchChat('manager')">Руководитель</div>
+                    <div class="chat-tab" id="tab-admin" onclick="switchChat('admin')">Маркетплейс</div>
+                </div>
+                <div class="chat-area">
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input-area" id="chat-input-container">
+                        <input type="text" id="emp-chat-input" placeholder="Написать сообщение..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                        <button class="btn btn-primary" onclick="sendChatMessage()" style="padding: 10px 15px;">></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- МОДАЛКА СКАНЕРА ПОВРЕЖДЕНИЙ -->
+    <div class="modal-overlay" id="damage-modal">
+        <div class="modal-content" style="text-align: center;">
+            <h2>Коробка повреждена</h2>
+            <p>Сделайте фото для отчета (симуляция).</p>
+            <div style="width: 100%; height: 200px; background: #ddd; display: flex; justify-content: center; align-items: center; border-radius: 8px; margin-bottom: 15px;">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </div>
+            <button class="btn btn-success" style="width: 100%;" onclick="takePhotoAndReturn()">Сделать фото и вернуть</button>
+        </div>
+    </div>
+
+    <!-- ОСТАЛЬНЫЕ МОДАЛКИ -->
     <div class="modal-overlay" id="payment-modal">
         <div class="modal-content" style="text-align:center;">
             <h2>Прием оплаты</h2>
-            <div class="cashier-total">К оплате: <span id="pay-total">0</span> Р</div>
-            <input type="number" id="pay-received" class="cashier-input" placeholder="Клиент дал (например: 5000)">
-            <input type="number" id="pay-change" class="cashier-input" placeholder="Сдача">
+            <div style="font-size: 24px; font-weight: bold; margin: 15px 0; color: var(--primary);">К оплате: <span id="pay-total">0</span> Р</div>
+            <input type="number" id="pay-received" style="width: 100%; padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;" placeholder="Клиент дал (например: 5000)">
+            <input type="number" id="pay-change" style="width: 100%; padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;" placeholder="Сдача">
             <p id="pay-error" style="color:var(--danger); font-weight:bold; height:20px;"></p>
             <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="confirmPayment()">Подтвердить</button>
         </div>
@@ -181,7 +225,6 @@
             <button class="close-modal" onclick="closeModal('finance-modal')">×</button>
             <h2>Финансы</h2>
             <div style="font-size: 24px; margin-bottom: 10px;">Доход: <strong id="finance-income" style="color: var(--success);">0 Р</strong></div>
-            <p style="color: #666; font-size: 14px;">Нажмите на столбик, чтобы увидеть сумму.</p>
             <div class="finance-chart" id="finance-chart"></div>
         </div>
     </div>
@@ -196,8 +239,8 @@
     <div class="modal-overlay" id="reset-modal">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h2>Сброс</h2>
-            <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(false)">Полный сброс (удалить всё)</button>
-            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Сброс заказов (сохранить отзывы)</button>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(false)">Полный сброс</button>
+            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Сброс заказов</button>
             <button class="btn" style="width: 100%; background:#eee;" onclick="closeModal('reset-modal')">Отмена</button>
         </div>
     </div>
@@ -235,14 +278,32 @@
     <div id="screen-client" class="hidden">
         <div class="app-header"><h2>Мои заказы</h2><button class="btn btn-primary" onclick="exitRole()">Выход</button></div>
         <div class="client-content" id="client-orders-list"></div>
-        <div class="client-chat-box">
-            <input type="text" id="client-chat-input" placeholder="Написать оператору..." onkeypress="if(event.key==='Enter') sendChatMessage('client')">
-            <button class="btn btn-primary" onclick="sendChatMessage('client')">Отправить</button>
+        
+        <!-- Кнопка чата для клиента -->
+        <div class="floating-chat-btn" onclick="openClientChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </div>
+
+        <!-- Мессенджер клиента -->
+        <div class="modal-overlay" id="client-chat-modal">
+            <div class="modal-content">
+                <div class="client-chat-header">
+                    <span>Чат с ПВЗ</span>
+                    <button class="close-modal" style="color: white; position: static;" onclick="closeModal('client-chat-modal')">×</button>
+                </div>
+                <div class="client-chat-messages" id="client-chat-messages"></div>
+                <div class="client-chat-input">
+                    <input type="text" id="client-chat-input" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendClientMessage()">
+                    <button class="btn btn-primary" onclick="sendClientMessage()">></button>
+                </div>
+            </div>
+        </div>
+
         <div id="client-qr-screen" class="hidden">
             <button class="close-qr" onclick="closeClientQR()">×</button>
             <h1 id="client-big-id">1</h1>
         </div>
+
         <div class="modal-overlay" id="rating-modal">
             <div class="modal-content" style="text-align: center; max-width: 400px;">
                 <h2>Оцените ПВЗ</h2>
@@ -273,21 +334,23 @@
         let currentRatingOrder = null;
         let currentPayTotal = 0;
         let confirmCallback = null;
-        
-        // Звук через Web Audio API (без Base64)
+        let currentChatType = 'client';
+        let aiQuestionAsked = false;
+
+        // Звук (громкий)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Нотa A5
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.type = 'square'; // Более резкий звук
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime); // Громко
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
+            osc.stop(audioCtx.currentTime + 0.15);
         }
 
         function startRole(role) {
@@ -356,10 +419,6 @@
         function openModal(id) { 
             if(id === 'finance-modal') loadFinance();
             if(id === 'reviews-modal') loadReviews();
-            if(id === 'chat-modal') {
-                loadChat();
-                document.getElementById('chat-red-dot').style.display = 'none';
-            }
             document.getElementById(id).style.display = 'flex'; 
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -386,10 +445,10 @@
             }).subscribe();
 
             supabaseClient.channel('emp-chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                if(payload.new.sender === 'client') {
+                if(payload.new.sender !== 'employee') {
                     document.getElementById('chat-red-dot').style.display = 'block';
                     showToast('Новое сообщение', payload.new.content);
-                    if(document.getElementById('chat-modal').style.display === 'flex') loadChat();
+                    if(document.getElementById('messenger-modal').style.display === 'flex' && currentChatType === payload.new.chat_type) loadChat();
                 }
             }).subscribe();
         }
@@ -432,7 +491,6 @@
             sorted.forEach(o => {
                 const items = o.order_items ? o.order_items.map(i => i.product_name).join(', ') : '—';
                 const payStatus = o.is_paid ? 'Оплачен' : 'При получении';
-                const fragileIcon = o.is_fragile ? ' [Хрупкий]' : '';
                 let actions = '';
                 if (o.status === 'accepted' || o.status === 'placed') {
                     actions = `
@@ -442,7 +500,7 @@
                 }
                 tbody.innerHTML += `<tr>
                     <td><strong>${o.id}</strong></td>
-                    <td>${items}${fragileIcon}</td>
+                    <td>${items}</td>
                     <td>${o.customer_name}</td>
                     <td>${payStatus}</td>
                     <td><span class="st-${o.status}">${translateStatus(o.status)}</span></td>
@@ -454,9 +512,13 @@
 
         function tableAction(orderId, action) {
             const order = empOrders.find(o => o.id === orderId);
+            
+            // ИСПРАВЛЕНИЕ ОШИБКИ ОПЛАТЫ: Если выдаем и не оплачено, открываем кассу
             if (action === 'issued' && !order.is_paid) {
-                alert("Требуется оплата!"); return;
+                openPaymentModal(orderId);
+                return;
             }
+
             showConfirm(`Подтвердить: ${translateStatus(action)} заказ №${orderId}?`, async () => {
                 const { error } = await supabaseClient.from('orders').update({ status: action }).eq('id', orderId);
                 if (!error) {
@@ -473,24 +535,27 @@
             // НОМЕР КОРОБКИ РАВЕН НОМЕРУ ЗАКАЗА
             const boxNumber = orderId;
 
-            if (order.is_fragile) {
-                showConfirm(`Заказ №${orderId} ХРУПКИЙ. Коробка не повреждена?`, async () => {
-                    await supabaseClient.from('orders').update({ status: 'accepted', box_number: boxNumber }).eq('id', orderId);
-                    empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))} принят`);
-                    loadEmpOrders();
-                }, async () => {
-                    await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
-                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден`);
-                    loadEmpOrders();
-                });
+            // 15% шанс повреждения
+            if (Math.random() < 0.15) {
+                document.getElementById('damage-modal').style.display = 'flex';
+                document.getElementById('damage-modal').setAttribute('data-order-id', orderId);
                 return;
             }
 
             const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: boxNumber }).eq('id', orderId);
             if (!error) {
-                empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}`);
+                empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))} принят`);
                 loadEmpOrders();
             }
+        }
+
+        async function takePhotoAndReturn() {
+            const orderId = document.getElementById('damage-modal').getAttribute('data-order-id');
+            await supabaseClient.from('damaged_reports').insert([{ order_id: orderId }]);
+            await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
+            closeModal('damage-modal');
+            empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден`);
+            loadEmpOrders();
         }
 
         function renderFocusedOrder() {
@@ -513,7 +578,7 @@
             const actions = document.getElementById('focus-actions');
             actions.innerHTML = '';
             if (!order.is_paid) {
-                actions.innerHTML = `<button class="btn btn-warning" style="width:100%;" onclick="openPaymentModal()">ПРИНЯТЬ ОПЛАТУ</button>`;
+                actions.innerHTML = `<button class="btn btn-warning" style="width:100%;" onclick="openPaymentModal('${order.id}')">ПРИНЯТЬ ОПЛАТУ</button>`;
             } else {
                 actions.innerHTML = `
                     <button class="btn btn-success" style="flex:1;" onclick="resolveFocusedOrder('issued')">ВЫДАН</button>
@@ -522,17 +587,19 @@
             }
         }
 
-        function openPaymentModal() {
-            const order = empOrders.find(o => o.id === focusedOrderId);
+        function openPaymentModal(orderId) {
+            const order = empOrders.find(o => o.id === orderId);
             currentPayTotal = order.order_items.reduce((sum, item) => sum + Number(item.price), 0);
             document.getElementById('pay-total').innerText = currentPayTotal;
             document.getElementById('pay-received').value = '';
             document.getElementById('pay-change').value = '';
             document.getElementById('pay-error').innerText = '';
             document.getElementById('payment-modal').style.display = 'flex';
+            document.getElementById('payment-modal').setAttribute('data-order-id', orderId);
         }
 
         async function confirmPayment() {
+            const orderId = document.getElementById('payment-modal').getAttribute('data-order-id');
             const received = Number(document.getElementById('pay-received').value);
             const givenChange = Number(document.getElementById('pay-change').value);
             const correctChange = received - currentPayTotal;
@@ -540,10 +607,12 @@
             if (received < currentPayTotal) { document.getElementById('pay-error').innerText = 'Недостаточно средств!'; return; }
             if (givenChange !== correctChange) { document.getElementById('pay-error').innerText = `Неверная сдача! Надо: ${correctChange} Р`; return; }
 
-            await supabaseClient.from('orders').update({ is_paid: true }).eq('id', focusedOrderId);
+            await supabaseClient.from('orders').update({ is_paid: true }).eq('id', orderId);
             closeModal('payment-modal');
             loadEmpOrders();
-            setTimeout(renderFocusedOrder, 300);
+            
+            // Если это был фокусный заказ, обновляем панель
+            if (focusedOrderId === orderId) setTimeout(renderFocusedOrder, 300);
         }
 
         function resolveFocusedOrder(newStatus) {
@@ -570,7 +639,11 @@
             if (!order) { msgEl.style.color = 'red'; msgEl.textContent = 'Не найден.'; return; }
             if (order.status === 'issued') { msgEl.style.color = 'orange'; msgEl.textContent = 'Уже выдан.'; return; }
             if (order.status !== 'placed' && order.status !== 'accepted') { msgEl.style.color = 'red'; msgEl.textContent = `Не принят.`; return; }
-            if (!order.is_paid) { msgEl.style.color = 'orange'; msgEl.textContent = 'Требуется оплата!'; return; }
+            if (!order.is_paid) { 
+                openPaymentModal(orderId);
+                msgEl.style.color = 'orange'; msgEl.textContent = 'Требуется оплата!'; 
+                return; 
+            }
 
             empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}. Коробка ${order.box_number}`);
             showConfirm(`Найдена коробка №${order.box_number}. Выдать заказ?`, async () => {
@@ -592,17 +665,80 @@
                 const bonuses = Math.floor((orders ? orders.length : 0) / 10) * 100;
                 totalIncome += bonuses;
 
-                // Сохраняем смену
                 const { data: shifts } = await supabaseClient.from('shifts').select('*');
                 const shiftNum = shifts ? shifts.length + 1 : 1;
                 await supabaseClient.from('shifts').insert([{ shift_number: shiftNum, income: totalIncome, issued_count: orders ? orders.length : 0 }]);
                 
-                // Сбрасываем заказы
                 await supabaseClient.from('orders').update({ status: 'in_transit', box_number: null, is_paid: true, is_damaged: false }).neq('id', '0');
                 
                 alert(`Смена окончена! Доход: ${totalIncome.toFixed(2)} Р`);
                 location.reload();
             });
+        }
+
+        // --- МЕССЕНДЖЕР (СОТРУДНИК) ---
+        function openMessenger() {
+            document.getElementById('messenger-modal').style.display = 'flex';
+            document.getElementById('chat-red-dot').style.display = 'none';
+            switchChat('client');
+            
+            // Триггер вопроса от ИИ (если еще не задан)
+            if (!aiQuestionAsked) {
+                aiQuestionAsked = true;
+                setTimeout(() => {
+                    supabaseClient.from('messages').insert([{ 
+                        chat_type: 'client', sender: 'client', content: 'А вы работаете в воскресенье?' 
+                    }]);
+                }, 2000);
+            }
+        }
+
+        function switchChat(type) {
+            currentChatType = type;
+            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + type).classList.add('active');
+            loadChat();
+            
+            // В чат с админом и руководителем писать нельзя (кроме руководителя по условию)
+            document.getElementById('chat-input-container').style.display = (type === 'admin') ? 'none' : 'flex';
+            
+            if (type === 'manager') {
+                document.getElementById('emp-chat-input').placeholder = "Ответить руководителю...";
+            } else if (type === 'client') {
+                document.getElementById('emp-chat-input').placeholder = "Ответить клиенту...";
+            }
+        }
+
+        async function loadChat() {
+            const { data } = await supabaseClient.from('messages').select('*').eq('chat_type', currentChatType).order('created_at', { ascending: true });
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+            if(data) {
+                data.forEach(m => {
+                    container.innerHTML += `<div class="msg ${m.sender}">${m.content}</div>`;
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        async function sendChatMessage() {
+            if (currentChatType === 'admin') return;
+            const input = document.getElementById('emp-chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+            
+            await supabaseClient.from('messages').insert([{ chat_type: currentChatType, sender: 'employee', content: text }]);
+            input.value = '';
+            loadChat();
+            
+            // Триггер ответа от ИИ (Руководитель)
+            if (currentChatType === 'manager') {
+                setTimeout(() => {
+                    const replies = ["Понял тебя.", "Хорошо, работаем дальше.", "Спасибо за информацию."];
+                    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                    supabaseClient.from('messages').insert([{ chat_type: 'manager', sender: 'manager', content: randomReply }]);
+                }, 1500);
+            }
         }
 
         // --- РОЛЬ: СКАНЕР КЛИЕНТА ---
@@ -623,29 +759,6 @@
                     }
                 });
             });
-        }
-
-        // --- ЧАТ ---
-        async function loadChat() {
-            const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
-            const container = document.getElementById('chat-messages');
-            container.innerHTML = '';
-            if(data) {
-                data.forEach(m => {
-                    container.innerHTML += `<div class="msg ${m.sender}">${m.content}</div>`;
-                });
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-
-        async function sendChatMessage(sender) {
-            const inputId = sender === 'employee' ? 'emp-chat-input' : 'client-chat-input';
-            const input = document.getElementById(inputId);
-            const text = input.value.trim();
-            if(!text) return;
-            await supabaseClient.from('messages').insert([{ sender, content: text }]);
-            input.value = '';
-            if(sender === 'employee') loadChat();
         }
 
         // --- ФИНАНСЫ ---
@@ -703,6 +816,7 @@
                     await supabaseClient.from('reviews').delete().neq('id', 0);
                     await supabaseClient.from('pvz_stats').update({ total_xp: 0, level: 1 }).eq('id', 1);
                     await supabaseClient.from('shifts').delete().neq('id', 0);
+                    await supabaseClient.from('messages').delete().neq('id', 0);
                 }
                 alert("Игра сброшена!"); location.reload();
             });
@@ -720,7 +834,7 @@
                         if (isScanning) return;
                         isScanning = true;
                         if (navigator.vibrate) navigator.vibrate(200);
-                        playBeep(); // ЗВУК ПИКА
+                        playBeep();
                         updateScanStatus("Отправка...", "");
                         sendScan(text);
                         setTimeout(() => { isScanning = false; updateScanStatus("Наведите камеру", ""); }, 2500);
@@ -758,6 +872,14 @@
                     }
                 }
             }).subscribe();
+            
+            // Слушаем чат для клиента
+            supabaseClient.channel('client-chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                if(payload.new.chat_type === 'client' && payload.new.sender !== 'client') {
+                    showToast('Сообщение от ПВЗ', payload.new.content);
+                    if(document.getElementById('client-chat-modal').style.display === 'flex') loadClientChat();
+                }
+            }).subscribe();
         }
 
         async function fetchClientOrders() {
@@ -775,12 +897,11 @@
             }
             readyOrders.forEach(order => {
                 const items = order.order_items.map(i => i.product_name).join(', ');
-                const fragileWarn = order.is_fragile ? '<span style="color:var(--danger); font-size:12px; display:block;">Хрупкий груз!</span>' : '';
                 list.innerHTML += `<div class="client-order-card">
                     <div>
                         <h3 style="margin:0 0 5px 0;">Заказ ${order.id}</h3>
+                        <p style="margin:0 0 5px 0; font-weight:bold; color:var(--primary);">Клиент: ${order.customer_name}</p>
                         <p style="margin:0;">${items}</p>
-                        ${fragileWarn}
                     </div>
                     <button class="btn btn-warning" onclick="showClientQR('${order.id}')">Показать</button>
                 </div>`;
@@ -811,12 +932,45 @@
             
             const { error } = await supabaseClient.from('reviews').insert([{ order_id: currentRatingOrder, rating: selectedStars, comment: comment }]);
             
-            if (error) {
-                alert("Ошибка: " + error.message);
-            } else {
+            if (!error) {
                 document.getElementById('rating-modal').style.display = 'none';
                 alert("Спасибо за отзыв!");
+                
+                // Триггер сообщений от руководства
+                if (selectedStars >= 4) {
+                    supabaseClient.from('messages').insert([{ chat_type: 'manager', sender: 'manager', content: 'О, хороший отзыв, красава!' }]);
+                } else {
+                    supabaseClient.from('messages').insert([{ chat_type: 'manager', sender: 'manager', content: 'Почему плохой отзыв? Ты там совсем перестал работать?' }]);
+                }
             }
+        }
+
+        // --- ЧАТ КЛИЕНТА ---
+        function openClientChat() {
+            document.getElementById('client-chat-modal').style.display = 'flex';
+            loadClientChat();
+        }
+
+        async function loadClientChat() {
+            const { data } = await supabaseClient.from('messages').select('*').eq('chat_type', 'client').order('created_at', { ascending: true });
+            const container = document.getElementById('client-chat-messages');
+            container.innerHTML = '';
+            if(data) {
+                data.forEach(m => {
+                    const bubbleClass = m.sender === 'client' ? 'employee' : 'client'; // Инверсия для клиента
+                    container.innerHTML += `<div class="msg ${bubbleClass}">${m.content}</div>`;
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        async function sendClientMessage() {
+            const input = document.getElementById('client-chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+            await supabaseClient.from('messages').insert([{ chat_type: 'client', sender: 'client', content: text }]);
+            input.value = '';
+            loadClientChat();
         }
     </script>
 </body>
