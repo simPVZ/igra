@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -22,7 +23,7 @@
 
         /* ОБЩИЕ КОМПОНЕНТЫ */
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--primary); color: white; transition: background 0.5s; }
-        .app-header.level-5 { background: #b8860b; } /* Золотой цвет при 5 уровне */
+        .app-header.level-5 { background: #b8860b; }
         .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { opacity: 0.9; }
         .btn-success { background: var(--success); color: white; }
@@ -40,7 +41,6 @@
         .toast.fade-out { animation: fadeOut 0.5s forwards; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        .toast-icon svg { width: 30px; height: 30px; stroke: var(--primary); }
 
         /* СОТРУДНИК */
         #screen-employee { display: flex; flex-direction: row; height: 100vh; font-size: 110%; }
@@ -72,11 +72,11 @@
         .cashier-total { font-size: 24px; font-weight: bold; margin: 15px 0; color: var(--primary); }
         .cashier-input { width: 100%; padding: 12px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
 
-        /* ГРАФИК ФИНАНСОВ */
-        .finance-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-        .chart-bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; position: relative; min-height: 5px; cursor: pointer; transition: 0.2s; }
+        /* ГРАФИК */
+        .finance-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; overflow-x: auto; }
+        .chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
+        .chart-bar { width: 30px; background: var(--primary); border-radius: 4px 4px 0 0; cursor: pointer; transition: 0.2s; }
         .chart-bar:hover { background: var(--success); }
-        .chart-label { position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #777; }
 
         /* СКАНЕРЫ */
         #screen-scanner, #screen-client-scanner { display: flex; flex-direction: column; height: 100vh; background: #222; color: white; position: fixed; top:0; left:0; width:100%; z-index: 500; }
@@ -104,8 +104,6 @@
 </head>
 <body>
 
-    <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
     <!-- 1. ВЫБОР РОЛИ -->
     <div id="screen-roles">
         <h1 style="margin-bottom: 40px; text-align: center;">Симулятор ПВЗ</h1>
@@ -125,6 +123,7 @@
             <button onclick="openModal('chat-modal')">Сообщения <div class="red-dot" id="chat-red-dot"></div></button>
             <button onclick="openModal('finance-modal')">Финансы</button>
             <button onclick="openModal('reviews-modal')">Оценки</button>
+            <button onclick="endShift()" style="background: rgba(255, 152, 0, 0.4);">Закончить смену</button>
             <button onclick="openModal('reset-modal')" style="margin-top:auto; background: rgba(244,67,54,0.4);">Сбросить игру</button>
         </div>
         <div class="emp-main">
@@ -153,45 +152,40 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА ЧАТА -->
+    <!-- МОДАЛКИ СОТРУДНИКА -->
     <div class="modal-overlay" id="chat-modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('chat-modal')">×</button>
             <h2>Чат с клиентами</h2>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="emp-chat-input" placeholder="Ответить клиенту..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd;">
+                <input type="text" id="emp-chat-input" placeholder="Ответить..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd;">
                 <button class="btn btn-primary" onclick="sendChatMessage('employee')">Отправить</button>
             </div>
         </div>
     </div>
 
-    <!-- МОДАЛКА КАССЫ -->
     <div class="modal-overlay" id="payment-modal">
         <div class="modal-content" style="text-align:center;">
             <h2>Прием оплаты</h2>
             <div class="cashier-total">К оплате: <span id="pay-total">0</span> Р</div>
-            <p style="text-align:left;">Введите сумму, которую дал клиент:</p>
-            <input type="number" id="pay-received" class="cashier-input" placeholder="Например: 5000">
-            <p style="text-align:left;">Введите сумму сдачи, которую вы отдаете:</p>
+            <input type="number" id="pay-received" class="cashier-input" placeholder="Клиент дал (например: 5000)">
             <input type="number" id="pay-change" class="cashier-input" placeholder="Сдача">
             <p id="pay-error" style="color:var(--danger); font-weight:bold; height:20px;"></p>
-            <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="confirmPayment()">Подтвердить оплату</button>
+            <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="confirmPayment()">Подтвердить</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА ФИНАНСОВ -->
     <div class="modal-overlay" id="finance-modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('finance-modal')">×</button>
-            <h2>Финансы смены</h2>
+            <h2>Финансы</h2>
             <div style="font-size: 24px; margin-bottom: 10px;">Доход: <strong id="finance-income" style="color: var(--success);">0 Р</strong></div>
-            <p style="color: #666; font-size: 14px;">Нажмите на столбик графика, чтобы увидеть точную сумму.</p>
+            <p style="color: #666; font-size: 14px;">Нажмите на столбик, чтобы увидеть сумму.</p>
             <div class="finance-chart" id="finance-chart"></div>
         </div>
     </div>
 
-    <!-- МОДАЛКА ОТЗЫВОВ -->
     <div class="modal-overlay" id="reviews-modal">
         <div class="modal-content" style="max-width: 500px;">
             <button class="close-modal" onclick="closeModal('reviews-modal')">×</button>
@@ -199,17 +193,15 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА СБРОСА -->
     <div class="modal-overlay" id="reset-modal">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
-            <h2>Сброс игры</h2>
-            <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(false)">Полный сброс (удалить отзывы)</button>
-            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Только сброс заказов</button>
+            <h2>Сброс</h2>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(false)">Полный сброс (удалить всё)</button>
+            <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="resetGame(true)">Сброс заказов (сохранить отзывы)</button>
             <button class="btn" style="width: 100%; background:#eee;" onclick="closeModal('reset-modal')">Отмена</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ -->
     <div class="modal-overlay" id="custom-confirm-modal">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <h2 id="confirm-title">Подтверждение</h2>
@@ -232,7 +224,7 @@
         </div>
     </div>
 
-    <!-- 4. СКАНЕР КЛИЕНТА (РОЛЬ) -->
+    <!-- 4. СКАНЕР КЛИЕНТА -->
     <div id="screen-client-scanner" class="hidden">
         <div class="app-header"><h2>Сканер клиента</h2><button class="btn btn-primary" onclick="exitRole()">Назад</button></div>
         <div id="role-client-status" class="status-bar-top">Наведите камеру на QR-код клиента</div>
@@ -243,17 +235,14 @@
     <div id="screen-client" class="hidden">
         <div class="app-header"><h2>Мои заказы</h2><button class="btn btn-primary" onclick="exitRole()">Выход</button></div>
         <div class="client-content" id="client-orders-list"></div>
-        
         <div class="client-chat-box">
             <input type="text" id="client-chat-input" placeholder="Написать оператору..." onkeypress="if(event.key==='Enter') sendChatMessage('client')">
             <button class="btn btn-primary" onclick="sendChatMessage('client')">Отправить</button>
         </div>
-
         <div id="client-qr-screen" class="hidden">
             <button class="close-qr" onclick="closeClientQR()">×</button>
             <h1 id="client-big-id">1</h1>
         </div>
-
         <div class="modal-overlay" id="rating-modal">
             <div class="modal-content" style="text-align: center; max-width: 400px;">
                 <h2>Оцените ПВЗ</h2>
@@ -284,14 +273,22 @@
         let currentRatingOrder = null;
         let currentPayTotal = 0;
         let confirmCallback = null;
-
-        document.addEventListener('click', function unlockAudio() {
-            if ('speechSynthesis' in window) {
-                const u = new SpeechSynthesisUtterance('');
-                window.speechSynthesis.speak(u);
-            }
-            document.removeEventListener('click', unlockAudio);
-        }, { once: true });
+        
+        // Звук через Web Audio API (без Base64)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Нотa A5
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
 
         function startRole(role) {
             document.getElementById('screen-roles').classList.add('hidden');
@@ -313,7 +310,7 @@
         function exitRole() { location.reload(); }
 
         function translateStatus(status) {
-            const map = {'in_transit': 'В пути', 'accepted': 'Принят', 'placed': 'На складе', 'issued': 'Выдан', 'returned': 'Возврат/Поврежден', 'lost': 'Потерян'};
+            const map = {'in_transit': 'В пути', 'accepted': 'Принят', 'placed': 'На складе', 'issued': 'Выдан', 'returned': 'Возврат'};
             return map[status] || status;
         }
 
@@ -337,17 +334,9 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `
-                <div class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-                <div><strong style="display:block; margin-bottom:5px;">${title}</strong><span style="font-size:14px; color:#555;">${text}</span></div>
-            `;
+            toast.innerHTML = `<div><strong style="display:block;">${title}</strong><span style="font-size:14px; color:#555;">${text}</span></div>`;
             container.appendChild(toast);
-            const audio = document.getElementById('notif-sound');
-            if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
         function showConfirm(text, callback) {
@@ -399,26 +388,18 @@
             supabaseClient.channel('emp-chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                 if(payload.new.sender === 'client') {
                     document.getElementById('chat-red-dot').style.display = 'block';
-                    showToast('Новое сообщение от клиента', payload.new.text);
+                    showToast('Новое сообщение', payload.new.content);
                     if(document.getElementById('chat-modal').style.display === 'flex') loadChat();
                 }
             }).subscribe();
         }
 
         async function loadStats() {
-            const { data, error } = await supabaseClient.from('pvz_stats').select('*').eq('id', 1).single();
-            if(error) {
-                console.error("Stats error:", error);
-                // Если таблицы нет, создадим её на лету (защита от ошибки)
-                await supabaseClient.from('pvz_stats').insert([{ id: 1, total_xp: 0, level: 1 }]);
-                return;
-            }
+            const { data } = await supabaseClient.from('pvz_stats').select('*').eq('id', 1).single();
             if(data) {
                 document.getElementById('emp-xp').innerText = data.total_xp;
                 document.getElementById('emp-level').innerText = data.level;
-                if(data.level >= 5) {
-                    document.querySelector('.app-header').classList.add('level-5');
-                }
+                if(data.level >= 5) document.querySelector('.app-header').classList.add('level-5');
             }
         }
 
@@ -427,12 +408,9 @@
             if(!data) return;
             let newXp = data.total_xp + amount;
             let newLevel = Math.floor(newXp / 100) + 1; 
-            
             await supabaseClient.from('pvz_stats').update({ total_xp: newXp, level: newLevel }).eq('id', 1);
             loadStats();
-            if(newLevel > data.level) {
-                showToast('Новый уровень!', `Поздравляем, вы достигли ${newLevel} уровня!`);
-            }
+            if(newLevel > data.level) showToast('Новый уровень!', `Вы достигли ${newLevel} уровня!`);
         }
 
         async function loadEmpOrders() {
@@ -446,7 +424,6 @@
         function renderEmpTable() {
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-            
             const sorted = [...empOrders].sort((a, b) => {
                 const p = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4, 'returned': 5 };
                 return (p[a.status] || 99) - (p[b.status] || 99);
@@ -493,28 +470,23 @@
             const order = empOrders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
+            // НОМЕР КОРОБКИ РАВЕН НОМЕРУ ЗАКАЗА
+            const boxNumber = orderId;
+
             if (order.is_fragile) {
                 showConfirm(`Заказ №${orderId} ХРУПКИЙ. Коробка не повреждена?`, async () => {
-                    const used = empOrders.filter(o => o.box_number !== null).map(o => o.box_number);
-                    let free = 1;
-                    while (used.includes(free) && free <= 50) free++;
-                    await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
-                    empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))} принят. Коробка ${free}`);
+                    await supabaseClient.from('orders').update({ status: 'accepted', box_number: boxNumber }).eq('id', orderId);
+                    empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))} принят`);
                     loadEmpOrders();
                 }, async () => {
                     await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
-                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден.`);
+                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден`);
                     loadEmpOrders();
                 });
                 return;
             }
 
-            const used = empOrders.filter(o => o.box_number !== null).map(o => o.box_number);
-            let free = 1;
-            while (used.includes(free) && free <= 50) free++;
-            if (free > 50) return alert("Склад переполнен!");
-
-            const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: free }).eq('id', orderId);
+            const { error } = await supabaseClient.from('orders').update({ status: 'accepted', box_number: boxNumber }).eq('id', orderId);
             if (!error) {
                 empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}`);
                 loadEmpOrders();
@@ -565,18 +537,11 @@
             const givenChange = Number(document.getElementById('pay-change').value);
             const correctChange = received - currentPayTotal;
 
-            if (received < currentPayTotal) {
-                document.getElementById('pay-error').innerText = 'Недостаточно средств!';
-                return;
-            }
-            if (givenChange !== correctChange) {
-                document.getElementById('pay-error').innerText = `Неверная сдача! Правильно: ${correctChange} Р`;
-                return;
-            }
+            if (received < currentPayTotal) { document.getElementById('pay-error').innerText = 'Недостаточно средств!'; return; }
+            if (givenChange !== correctChange) { document.getElementById('pay-error').innerText = `Неверная сдача! Надо: ${correctChange} Р`; return; }
 
             await supabaseClient.from('orders').update({ is_paid: true }).eq('id', focusedOrderId);
             closeModal('payment-modal');
-            showToast('Оплата принята', `Сдача: ${givenChange} Р`);
             loadEmpOrders();
             setTimeout(renderFocusedOrder, 300);
         }
@@ -610,10 +575,33 @@
             empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))}. Коробка ${order.box_number}`);
             showConfirm(`Найдена коробка №${order.box_number}. Выдать заказ?`, async () => {
                 const { error } = await supabaseClient.from('orders').update({ status: 'issued' }).eq('id', orderId);
-                if (!error) { 
-                    msgEl.style.color = 'green'; msgEl.textContent = `Выдан!`; 
-                    input.value = ''; addXp(10); loadEmpOrders(); 
+                if (!error) { msgEl.style.color = 'green'; msgEl.textContent = `Выдан!`; input.value = ''; addXp(10); loadEmpOrders(); }
+            });
+        }
+
+        async function endShift() {
+            showConfirm("Закончить смену и сохранить доход?", async () => {
+                const { data: orders } = await supabaseClient.from('orders').select(`*, order_items (*)`).eq('status', 'issued');
+                let totalIncome = 0;
+                if (orders) {
+                    orders.forEach(o => {
+                        const sum = o.order_items.reduce((s, i) => s + Number(i.price), 0);
+                        totalIncome += Math.min(sum * 0.04, 500);
+                    });
                 }
+                const bonuses = Math.floor((orders ? orders.length : 0) / 10) * 100;
+                totalIncome += bonuses;
+
+                // Сохраняем смену
+                const { data: shifts } = await supabaseClient.from('shifts').select('*');
+                const shiftNum = shifts ? shifts.length + 1 : 1;
+                await supabaseClient.from('shifts').insert([{ shift_number: shiftNum, income: totalIncome, issued_count: orders ? orders.length : 0 }]);
+                
+                // Сбрасываем заказы
+                await supabaseClient.from('orders').update({ status: 'in_transit', box_number: null, is_paid: true, is_damaged: false }).neq('id', '0');
+                
+                alert(`Смена окончена! Доход: ${totalIncome.toFixed(2)} Р`);
+                location.reload();
             });
         }
 
@@ -637,19 +625,14 @@
             });
         }
 
-        // --- ЧАТ (ИСПРАВЛЕНО С ОТЛАДКОЙ) ---
+        // --- ЧАТ ---
         async function loadChat() {
-            const { data, error } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
-            if (error) {
-                console.error("Ошибка загрузки чата:", error);
-                alert("Ошибка загрузки сообщений: " + error.message);
-                return;
-            }
+            const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
             const container = document.getElementById('chat-messages');
             container.innerHTML = '';
             if(data) {
                 data.forEach(m => {
-                    container.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
+                    container.innerHTML += `<div class="msg ${m.sender}">${m.content}</div>`;
                 });
                 container.scrollTop = container.scrollHeight;
             }
@@ -660,58 +643,42 @@
             const input = document.getElementById(inputId);
             const text = input.value.trim();
             if(!text) return;
-            
-            const { error } = await supabaseClient.from('messages').insert([{ sender, text }]);
-            
-            if (error) {
-                console.error("Ошибка отправки:", error);
-                alert("Не удалось отправить сообщение: " + error.message);
-            } else {
-                input.value = '';
-                if(sender === 'employee') loadChat();
-            }
+            await supabaseClient.from('messages').insert([{ sender, content: text }]);
+            input.value = '';
+            if(sender === 'employee') loadChat();
         }
 
         // --- ФИНАНСЫ ---
         async function loadFinance() {
-            const { data } = await supabaseClient.from('orders').select(`*, order_items (*)`).eq('status', 'issued');
-            let totalIncome = 0;
-            let chartData = [0, 0, 0, 0, 0]; 
+            const { data } = await supabaseClient.from('shifts').select('*').order('shift_number');
+            const { data: currentOrders } = await supabaseClient.from('orders').select(`*, order_items (*)`).eq('status', 'issued');
             
-            if (data) {
-                data.forEach((order, index) => {
-                    const sum = order.order_items.reduce((s, i) => s + Number(i.price), 0);
-                    const commission = Math.min(sum * 0.04, 500);
-                    totalIncome += commission;
-                    chartData[index % 5] += commission;
+            let currentIncome = 0;
+            if (currentOrders) {
+                currentOrders.forEach(o => {
+                    const sum = o.order_items.reduce((s, i) => s + Number(i.price), 0);
+                    currentIncome += Math.min(sum * 0.04, 500);
                 });
             }
             
-            const bonuses = Math.floor((data ? data.length : 0) / 10) * 100;
-            totalIncome += bonuses;
-
-            document.getElementById('finance-income').innerText = totalIncome.toFixed(2) + ' Р';
+            document.getElementById('finance-income').innerText = currentIncome.toFixed(2) + ' Р';
             
             const chart = document.getElementById('finance-chart');
             chart.innerHTML = '';
+            let chartData = [];
+            if(data) data.forEach(s => chartData.push(s.income));
+            chartData.push(currentIncome); // Текущая смена
+
             const max = Math.max(...chartData, 1);
-            
             chartData.forEach((val, i) => {
                 const height = (val / max) * 100;
-                chart.innerHTML += `<div class="chart-bar" style="height: ${height}%;" onclick="alert('Доход за смену ${i+1}: ${val.toFixed(2)} Р')"><div class="chart-label">Смена ${i+1}</div></div>`;
+                chart.innerHTML += `<div class="chart-bar-wrapper"><div class="chart-bar" style="height: ${height}px;" onclick="alert('Смена ${i+1}: ${val.toFixed(2)} Р')"></div><div style="font-size:10px; margin-top:5px;">#${i+1}</div></div>`;
             });
         }
 
-        // --- ОТЗЫВЫ (ИСПРАВЛЕНО С ОТЛАДКОЙ) ---
+        // --- ОТЗЫВЫ ---
         async function loadReviews() {
-            const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
-            
-            if (error) {
-                console.error("Ошибка загрузки отзывов:", error);
-                alert("Ошибка загрузки отзывов: " + error.message);
-                return;
-            }
-
+            const { data } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
             const list = document.getElementById('reviews-list');
             if (!data || data.length === 0) { list.innerHTML = '<p>Нет отзывов</p>'; return; }
             
@@ -735,6 +702,7 @@
                 if (!keepStats) {
                     await supabaseClient.from('reviews').delete().neq('id', 0);
                     await supabaseClient.from('pvz_stats').update({ total_xp: 0, level: 1 }).eq('id', 1);
+                    await supabaseClient.from('shifts').delete().neq('id', 0);
                 }
                 alert("Игра сброшена!"); location.reload();
             });
@@ -752,6 +720,7 @@
                         if (isScanning) return;
                         isScanning = true;
                         if (navigator.vibrate) navigator.vibrate(200);
+                        playBeep(); // ЗВУК ПИКА
                         updateScanStatus("Отправка...", "");
                         sendScan(text);
                         setTimeout(() => { isScanning = false; updateScanStatus("Наведите камеру", ""); }, 2500);
@@ -843,8 +812,7 @@
             const { error } = await supabaseClient.from('reviews').insert([{ order_id: currentRatingOrder, rating: selectedStars, comment: comment }]);
             
             if (error) {
-                console.error("Ошибка отправки отзыва:", error);
-                alert("Не удалось отправить отзыв: " + error.message);
+                alert("Ошибка: " + error.message);
             } else {
                 document.getElementById('rating-modal').style.display = 'none';
                 alert("Спасибо за отзыв!");
