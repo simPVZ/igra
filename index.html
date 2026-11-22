@@ -285,7 +285,6 @@
         let currentPayTotal = 0;
         let confirmCallback = null;
 
-        // Разблокировка звука
         document.addEventListener('click', function unlockAudio() {
             if ('speechSynthesis' in window) {
                 const u = new SpeechSynthesisUtterance('');
@@ -407,12 +406,16 @@
         }
 
         async function loadStats() {
-            const { data } = await supabaseClient.from('pvz_stats').select('*').eq('id', 1).single();
+            const { data, error } = await supabaseClient.from('pvz_stats').select('*').eq('id', 1).single();
+            if(error) {
+                console.error("Stats error:", error);
+                // Если таблицы нет, создадим её на лету (защита от ошибки)
+                await supabaseClient.from('pvz_stats').insert([{ id: 1, total_xp: 0, level: 1 }]);
+                return;
+            }
             if(data) {
                 document.getElementById('emp-xp').innerText = data.total_xp;
                 document.getElementById('emp-level').innerText = data.level;
-                
-                // Визуальные улучшения для высокого уровня
                 if(data.level >= 5) {
                     document.querySelector('.app-header').classList.add('level-5');
                 }
@@ -423,7 +426,7 @@
             const { data } = await supabaseClient.from('pvz_stats').select('*').eq('id', 1).single();
             if(!data) return;
             let newXp = data.total_xp + amount;
-            let newLevel = Math.floor(newXp / 100) + 1; // 100 XP = 1 уровень
+            let newLevel = Math.floor(newXp / 100) + 1; 
             
             await supabaseClient.from('pvz_stats').update({ total_xp: newXp, level: newLevel }).eq('id', 1);
             loadStats();
@@ -444,7 +447,6 @@
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
             
-            // Сортировка: Сначала "Принят" (чтобы отсканированные были сверху), потом "В пути", потом остальные
             const sorted = [...empOrders].sort((a, b) => {
                 const p = { 'accepted': 1, 'placed': 2, 'in_transit': 3, 'issued': 4, 'returned': 5 };
                 return (p[a.status] || 99) - (p[b.status] || 99);
@@ -491,10 +493,8 @@
             const order = empOrders.find(o => o.id === orderId);
             if (!order || order.status !== 'in_transit') return;
 
-            // Проверка на хрупкий груз
             if (order.is_fragile) {
-                showConfirm(`Заказ №${orderId} помечен как ХРУПКИЙ. Вы уверены, что коробка не повреждена?`, async () => {
-                    // Если нажали Да (не повреждена)
+                showConfirm(`Заказ №${orderId} ХРУПКИЙ. Коробка не повреждена?`, async () => {
                     const used = empOrders.filter(o => o.box_number !== null).map(o => o.box_number);
                     let free = 1;
                     while (used.includes(free) && free <= 50) free++;
@@ -502,15 +502,13 @@
                     empSpeak(`Заказ номер ${numberToRussian(parseInt(orderId))} принят. Коробка ${free}`);
                     loadEmpOrders();
                 }, async () => {
-                    // Если нажали Нет (повреждена)
                     await supabaseClient.from('orders').update({ status: 'returned', is_damaged: true }).eq('id', orderId);
-                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден. Отправлен в возврат.`);
+                    empSpeak(`Заказ ${numberToRussian(parseInt(orderId))} поврежден.`);
                     loadEmpOrders();
                 });
                 return;
             }
 
-            // Обычная приемка
             const used = empOrders.filter(o => o.box_number !== null).map(o => o.box_number);
             let free = 1;
             while (used.includes(free) && free <= 50) free++;
@@ -578,7 +576,7 @@
 
             await supabaseClient.from('orders').update({ is_paid: true }).eq('id', focusedOrderId);
             closeModal('payment-modal');
-            showToast('Оплата принята', `Получено ${received} Р. Сдача: ${givenChange} Р`);
+            showToast('Оплата принята', `Сдача: ${givenChange} Р`);
             loadEmpOrders();
             setTimeout(renderFocusedOrder, 300);
         }
@@ -639,9 +637,14 @@
             });
         }
 
-        // --- ЧАТ ---
+        // --- ЧАТ (ИСПРАВЛЕНО С ОТЛАДКОЙ) ---
         async function loadChat() {
-            const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
+            const { data, error } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
+            if (error) {
+                console.error("Ошибка загрузки чата:", error);
+                alert("Ошибка загрузки сообщений: " + error.message);
+                return;
+            }
             const container = document.getElementById('chat-messages');
             container.innerHTML = '';
             if(data) {
@@ -657,17 +660,22 @@
             const input = document.getElementById(inputId);
             const text = input.value.trim();
             if(!text) return;
-            await supabaseClient.from('messages').insert([{ sender, text }]);
-            input.value = '';
-            if(sender === 'employee') loadChat();
+            
+            const { error } = await supabaseClient.from('messages').insert([{ sender, text }]);
+            
+            if (error) {
+                console.error("Ошибка отправки:", error);
+                alert("Не удалось отправить сообщение: " + error.message);
+            } else {
+                input.value = '';
+                if(sender === 'employee') loadChat();
+            }
         }
 
-        // --- ФИНАНСЫ И ГРАФИК ---
+        // --- ФИНАНСЫ ---
         async function loadFinance() {
             const { data } = await supabaseClient.from('orders').select(`*, order_items (*)`).eq('status', 'issued');
             let totalIncome = 0;
-            
-            // Имитация графика по дням/сменам
             let chartData = [0, 0, 0, 0, 0]; 
             
             if (data) {
@@ -675,12 +683,10 @@
                     const sum = order.order_items.reduce((s, i) => s + Number(i.price), 0);
                     const commission = Math.min(sum * 0.04, 500);
                     totalIncome += commission;
-                    // Распределяем по столбикам графика
                     chartData[index % 5] += commission;
                 });
             }
             
-            // Добавляем бонусы
             const bonuses = Math.floor((data ? data.length : 0) / 10) * 100;
             totalIncome += bonuses;
 
@@ -696,9 +702,16 @@
             });
         }
 
-        // --- ОТЗЫВЫ ---
+        // --- ОТЗЫВЫ (ИСПРАВЛЕНО С ОТЛАДКОЙ) ---
         async function loadReviews() {
-            const { data } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error("Ошибка загрузки отзывов:", error);
+                alert("Ошибка загрузки отзывов: " + error.message);
+                return;
+            }
+
             const list = document.getElementById('reviews-list');
             if (!data || data.length === 0) { list.innerHTML = '<p>Нет отзывов</p>'; return; }
             
@@ -793,7 +806,7 @@
             }
             readyOrders.forEach(order => {
                 const items = order.order_items.map(i => i.product_name).join(', ');
-                const fragileWarn = order.is_fragile ? '<span style="color:var(--danger); font-size:12px; display:block;">Хрупкий груз! Проверьте при получении.</span>' : '';
+                const fragileWarn = order.is_fragile ? '<span style="color:var(--danger); font-size:12px; display:block;">Хрупкий груз!</span>' : '';
                 list.innerHTML += `<div class="client-order-card">
                     <div>
                         <h3 style="margin:0 0 5px 0;">Заказ ${order.id}</h3>
@@ -822,12 +835,20 @@
                 if (i < selectedStars) star.classList.add('active'); else star.classList.remove('active');
             });
         }
+        
         async function submitRating() {
             if (selectedStars === 0) return alert("Поставьте оценку!");
             const comment = document.getElementById('rating-comment').value.trim();
-            await supabaseClient.from('reviews').insert([{ order_id: currentRatingOrder, rating: selectedStars, comment: comment }]);
-            document.getElementById('rating-modal').style.display = 'none';
-            alert("Спасибо за отзыв!");
+            
+            const { error } = await supabaseClient.from('reviews').insert([{ order_id: currentRatingOrder, rating: selectedStars, comment: comment }]);
+            
+            if (error) {
+                console.error("Ошибка отправки отзыва:", error);
+                alert("Не удалось отправить отзыв: " + error.message);
+            } else {
+                document.getElementById('rating-modal').style.display = 'none';
+                alert("Спасибо за отзыв!");
+            }
         }
     </script>
 </body>
